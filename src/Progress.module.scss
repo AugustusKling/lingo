@@ -1,0 +1,35 @@
+.progress {
+    height: 0.5rem;
+    display: flex;
+
+    > .wrong {
+        background: red;
+    }
+
+    > .somewhat {
+        background: orange;
+    }
+
+    > .learned {
+        background: green;
+    }
+
+    > .unseen {
+        background: white;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .progress > .wrong {
+        background: darkred;
+    }
+    .progress > .somewhat {
+        background: darkorange;
+    }
+    .progress > .learned {
+        background: darkgreen;
+    }
+    .progress > .unseen {
+        background: darkgray;
+    }
+}

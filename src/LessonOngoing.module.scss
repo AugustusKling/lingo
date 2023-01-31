@@ -1,0 +1,36 @@
+.progress {
+    width: 100%;
+}
+.head {
+    display: grid;
+    grid-template-columns: auto min-content;
+    gap: 0.5rem;
+}
+.head .buttonDefinition {
+    grid-row: 1;
+}
+.question {
+    font-weight: bold;
+    font-size: 1.5rem;
+    grid-row: 1/3;
+}
+.questionHint {
+    font-size: 0.8rem;
+    grid-column: 1;
+}
+.correctAnswerHint {
+    border: 1rem solid orange;
+    margin: 1rem 0;
+}
+.correctAnswerHint p {
+    margin: 1rem;
+}
+.correctAnswerHint .wrongAnswer, .correctAnswerHint .correctAnswer {
+    border-left: 0.5rem solid darkgray;
+    padding-left: 0.5rem;
+}
+.buttons {
+    margin: 2rem 0;
+    display: flex;
+    justify-content: space-between;
+}

@@ -1,0 +1,44 @@
+.typeAnswer {
+    display: flex;
+    flex-direction: column;
+    
+    .textInput {
+        display: flex;
+        width: 100%;
+        gap: 1rem;
+        
+        input {
+            padding: 1rem;
+            border: 0 solid;
+            border-bottom: 0.5rem solid darkgray;
+            background: lightgray;
+            color: black;
+            flex: 1;
+        }
+        input:focus-visible {
+            outline: none;
+            border-bottom-color: steelblue;
+        }
+    }
+}
+.wordSuggestions {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+.wordSuggestions .wordSuggestion {
+    background: lightgray;
+    border: 2px solid darkgray;
+    padding: 0.5rem;
+    margin: 0;
+}
+
+
+@media (prefers-color-scheme: dark) {
+    .wordSuggestions .wordSuggestion {
+        background: black;
+        border-width: 1px;
+    }
+}

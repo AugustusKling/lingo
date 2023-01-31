@@ -1,0 +1,17 @@
+.course {
+    background: lightgray;
+    padding: .5rem;
+    cursor: pointer;
+    border: 2px solid darkgray;
+}
+.course h1 {
+    margin: 0;
+}
+
+
+@media (prefers-color-scheme: dark) {
+    .course {
+        background: black;
+        border: 2px solid darkgray;
+    }
+}

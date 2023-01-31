@@ -1,0 +1,39 @@
+body {
+    font-family: sans-serif;
+    
+    > * {
+        max-width: 400px;
+        margin: auto;
+    }
+}
+
+button {
+    padding: 0.5rem;
+    border: 1px solid;
+    border-radius: 0.5rem;
+    border-bottom-width: 3px;
+    border-right-width: 3px;
+}
+
+* {
+    /** Workaround to prevent blue flashes in Chrome-like browsers. */
+    -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: black;
+        color: darkgray;
+    }
+    
+    input[type=text], button {
+        background: black;
+        color: darkgray;
+    }
+    
+    button:hover {
+        background: lightgray;
+        color: black;
+        border-color: darkgray;
+    }    
+}

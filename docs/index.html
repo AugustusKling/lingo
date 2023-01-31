@@ -6,84 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <link rel="icon" href="data:;base64,">
 
-  <script type="module" crossorigin src="/lingo/assets/index-eefa22e0.js"></script>
-  <link rel="stylesheet" href="/lingo/assets/index-a1397077.css">
+  <script type="module" crossorigin src="/lingo/assets/index-e2724a7d.js"></script>
+  <link rel="stylesheet" href="/lingo/assets/index-a0be5280.css">
 </head>
 <body>
-<div class="courseList"></div>
-<div class="courseDetails"></div>
-<div class="lessonOngoing"></div>
-<div class="definitionOverlay">
-    <button class="buttonBack">Back to exercise</button>
-    <h1 class="title"></h1>
-    <p class="hint"></p>
-    <div class="translations"></div>
-</div>
-
-<div id="courseTemplate" class="course">
-    <h1 class="title"></h1>
-    <div class="progress">
-        <div class="wrong"></div>
-        <div class="somewhat"></div>
-        <div class="learned"></div>
-        <div class="unseen"></div>
-    </div>
-    <div class="hint"></div>
-</div>
-<div id="courseDetailsTemplate" class="course">
-    <h1 class="title"></h1>
-    <div class="progress">
-        <div class="wrong"></div>
-        <div class="somewhat"></div>
-        <div class="learned"></div>
-        <div class="unseen"></div>
-    </div>
-    <button class="buttonBack">Back to course list</button>
-    <h2>Lessons</h2>
-    <div class="lessons"></div>
-    <h2>Categories</h2>
-    <div class="categories"></div>
-    <h2>Dynamic</h2>
-    <div class="dynamicCategories"></div>
-</div>
-<div id="lessonTemplate" class="lesson">
-    <h1 class="title"></h1>
-    <div class="progress">
-        <div class="wrong"></div>
-        <div class="somewhat"></div>
-        <div class="learned"></div>
-        <div class="unseen"></div>
-    </div>
-    <div class="hint"></div>
-</div>
-<div id="lessonOngoingTemplate" class="lessonOngoing">
-    <progress max="1" value="0"></progress>
-    <div class="head">
-        <div class="question"></div>
-        <div class="questionHint"></div>
-        <button class="buttonDefinition">Info</button>
-    </div>
-    <div class="pickAnswer">
-        <p>Pick correct translation</p>
-    </div>
-    <div class="typeAnswer">
-        <p>Type translation</p>
-        <div class="textInput">
-            <input type="text"><button class="buttonClear">Clear</button>
-        </div>
-        <div class="wordSuggestions"></div>
-    </div>
-    <div class="correctAnswerHint" style="display: none">
-        <p>Your answer</p>
-        <p class="wrongAnswer"></p>
-        <p>Correct answer</p>
-        <p class="correctAnswer"></p>
-    </div>
-    <div class="buttons">
-        <button class="buttonBack">Abort</button>
-        <button class="buttonConfirm">Confirm</button>
-    </div>
-</div>
+<div id='app'></div>
 
 </body>
 </html>

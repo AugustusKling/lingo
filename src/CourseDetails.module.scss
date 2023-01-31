@@ -1,0 +1,12 @@
+.progress {
+    border: 1px solid darkgray;
+}
+.buttonBack {
+    margin-top: 1rem;
+}
+.lessons, .categories, .dynamicCategories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    cursor: pointer;
+}

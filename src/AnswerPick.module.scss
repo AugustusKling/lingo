@@ -1,0 +1,17 @@
+.pickAnswer .answer {
+    border-left: 0.5rem solid darkgray;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    &.selected {
+        border-left-color: green;
+        outline: 1px solid green;
+        font-weight: bold;
+    }
+}
+.pickAnswer .answer:hover {
+    outline: 1px solid;
+}
