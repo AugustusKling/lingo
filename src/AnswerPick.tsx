@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { pickRandom, findWrongAnswers } from './util.js';
+import { pickRandom, findWrongAnswers, speak } from './util.js';
 import styles from './AnswerPick.module.scss';
 
 export function AnswerPick({course, currentExercise, correctAnswer, currentAnswer, onSelect, onConfirm, onShowDefinition}) {
