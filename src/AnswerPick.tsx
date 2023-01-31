@@ -23,7 +23,10 @@ export function AnswerPick({course, currentExercise, correctAnswer, currentAnswe
         () => speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(course.to)),
         [course]
     );
-    const acousticPick = voices.length > 0 && Math.random() < 0.5;
+    const acousticPick = useMemo(
+        () => voices.length > 0 && Math.random() < 0.5,
+        [voices]
+    );
     
     const speakAndSelect = (answerOption) => {
         speak(answerOption.text, voices);
