@@ -8,4 +8,4 @@ Runnable version at https://augustuskling.github.io/lingo/ which stores progress
 ## Data source
 Example sentences are mostly imported from Tatoeba. Additional excercises can be put as yml files in the `exercises` folder.
 
-You can find Tatoeba's sentenences and translations to various langages on https://tatoeba.org/en/downloads and integrate them using `import-tatoeba.mjs`.
+You can find Tatoeba's sentenences and translations to various langages on https://tatoeba.org/en/downloads and integrate them using `import-tatoeba.mjs` (converts TSV to yml files) and `build-courses.js` (constructs courses from exercises and lessons).
