@@ -31,9 +31,11 @@ button {
         color: darkgray;
     }
     
-    button:hover {
-        background: lightgray;
-        color: black;
-        border-color: darkgray;
-    }    
+    @media(hover: hover) {
+        button:hover {
+            background: lightgray;
+            color: black;
+            border-color: darkgray;
+        }
+    }
 }
