@@ -1,0 +1,17 @@
+order: 8
+title:
+ en: "Colors"
+ de: "Farben"
+ sv: "Färg"
+
+image: brushes
+
+exercises:
+  - red
+  - green
+  - white
+  - blue
+  - brown
+  - yellow
+  - purple
+  - black

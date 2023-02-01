@@ -1,0 +1,27 @@
+order: 5
+title:
+ en: "Common Pets"
+ de: "Haustiere"
+ sv: Husdjur
+description:
+ en: "Pet names"
+
+image: pet
+
+exercises:
+  - cat
+  - tatoeba/1396370
+  - tatoeba/1497521
+  - tatoeba/1028408
+  - tatoeba/10500365
+  - tatoeba/10663137
+  - tatoeba/11055117
+  - tatoeba/1127925
+  - tatoeba/240460
+  - tatoeba/10053284
+  - tatoeba/1201040
+  - tatoeba/1224114
+  - tatoeba/44554
+  - tatoeba/2721192
+  - tatoeba/7736255
+  - tatoeba/2031351
