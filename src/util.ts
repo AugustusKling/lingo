@@ -12,7 +12,9 @@ export interface Course {
     lessons: Lesson[];
     exercerciseList: Exercise[];
 }
-interface Lesson {
+export interface Lesson {
+    title: Record<string, string>;
+    description?: Record<string, string>;
     exercises: string[];
 }
 export interface Exercise {

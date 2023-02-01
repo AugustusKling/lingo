@@ -8,7 +8,7 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
         return sortedLessons.map((lesson, index) => {
             const title = lesson.title[course.to] || lesson.title[course.from];
             const exercises = course.exercerciseList.filter(exercise => lesson.exercises.includes(exercise.conceptName));
-            return <LessonTile course={course} title={title} exercises={lesson.exercises} progress={getProgressForExercises(lesson.exercises)} onExercisesSelected={() => showDynamicLesson(exercises)} key={index} />;
+            return <LessonTile course={course} lesson={lesson} title={title} exercises={lesson.exercises} progress={getProgressForExercises(lesson.exercises)} onExercisesSelected={() => showDynamicLesson(exercises)} key={index} />;
         });
     };
     const renderCategories = () => {
