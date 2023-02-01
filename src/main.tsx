@@ -69,7 +69,7 @@ function App() {
     }
     
     const showDynamicLesson = (exercisePicklist) => {
-        const exercisesByStatus = byStatus(knowledge[stateActiveCourse], exercisePicklist);
+        const exercisesByStatus = byStatus(knowledge[stateActiveCourse] || {}, exercisePicklist);
         const amountToShow = Math.min(10, exercisePicklist.length);
         const picklistCopy = [...(exercisesByStatus.wrong || []), ...(exercisesByStatus.somewhat || [])];
         const picked: Exercise[] = [];
