@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import useLocalStorageState from 'use-local-storage-state'
 import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing} from './LessonOngoing.js';
-import { pickRandom, findWrongAnswers, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Exercise } from './util.js';
+import { pickRandom, findWrongAnswers, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Exercise, byStatus } from './util.js';
 import { CourseList} from './CourseList.js';
 
 function App() {
@@ -69,13 +69,24 @@ function App() {
     }
     
     const showDynamicLesson = (exercisePicklist) => {
+        const exercisesByStatus = byStatus(knowledge[stateActiveCourse], exercisePicklist);
         const amountToShow = Math.min(10, exercisePicklist.length);
-        const picklistCopy = [...exercisePicklist];
+        const picklistCopy = [...(exercisesByStatus.wrong || []), ...(exercisesByStatus.somewhat || [])];
         const picked: Exercise[] = [];
-        while(picked.length < amountToShow) {
+        while(picked.length < Math.min(amountToShow*0.7, picklistCopy.length)) {
             const pickedIndex = Math.floor(Math.random() * picklistCopy.length);
             picked.push(...picklistCopy.splice(pickedIndex, 1));
         }
+        while(picked.length < amountToShow && exercisesByStatus.unseen?.length > 0) {
+            const pickedIndex = Math.floor(Math.random() * exercisesByStatus.unseen.length);
+            picked.push(...exercisesByStatus.unseen.splice(pickedIndex, 1));
+        }
+        const unpickedSoFar = exercisePicklist.filter(e => !picked.includes(e));
+        while(picked.length < amountToShow) {
+            const pickedIndex = Math.floor(Math.random() * unpickedSoFar.length);
+            picked.push(...unpickedSoFar.splice(pickedIndex, 1));
+        }
+        picked.sort(() => Math.random() - 0.5);
         setOngoingLessionExercises(picked);
         setHash('lesson');
     };

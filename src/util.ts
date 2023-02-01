@@ -37,6 +37,19 @@ export interface CourseMeta {
 export function pickRandom<X>(array: Array<X>): X {
     return array[Math.floor(Math.random() * array.length)];
 }
+function group<X, Key extends string>(array: X[], mapper: (x: X) => key): Record<Key, X[]> {
+    const result:Record<Key, X[]> = {};
+    for(const value of array) {
+        const key = mapper(value);
+        const maybeList = result[key];
+        if (maybeList === undefined) {
+            result[key] = [value];
+        } else {
+            maybeList.push(value);
+        }
+    }
+    return result;
+}
 
 function findWrongAnswer(exercise: Exercise, exercerciseListOfCourse: Course["exercerciseList"], answerLanguage: string, except: Exercise[]): Exercise {
     const others = exercerciseListOfCourse.filter(o => o !== exercise && !except.includes(o));
@@ -104,4 +117,8 @@ export function statusForExerciseReact(langKnowledge: LangKnowledge, exerciseNam
         return "wrong";
     }
     return "somewhat";
+}
+
+export function byStatus(langKnowledge: LangKnowledge, exercises: Exercise[]): Record<ExerciseStatus, Exercise[]> {
+    return group(exercises, e => statusForExerciseReact(langKnowledge, e.conceptName));
 }
