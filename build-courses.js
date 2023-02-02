@@ -9,6 +9,7 @@ const courseTemplate = {
 };
 
 const coursesByLanguagePair = {};
+const exerciseNamesByLanguagePair = {};
 
 const exercises = readdirSyncRecursive('exercises');
 for(const conceptName of exercises) {
@@ -54,14 +55,25 @@ for(const conceptName of exercises) {
             course.to = langPair.substr(langPair.lastIndexOf(' ') + 1);
             coursesByLanguagePair[langPair] = course;
             
+            const conceptNameNoFileExtension = conceptName.replace(/\.yml/, '');
+            const knownNames = exerciseNamesByLanguagePair[langPair];
+            if (knownNames) {
+                knownNames.add(conceptNameNoFileExtension);
+            } else {
+                const names = new Set();
+                names.add(conceptNameNoFileExtension);
+                exerciseNamesByLanguagePair[langPair] = names;
+            }
+            
             if (doc.translations[course.from].length > 0 && doc.translations[course.to].length > 0) {
-                course.exercerciseList.push({...doc, conceptName: conceptName.replace(/\.yml/, '')});
+                course.exercerciseList.push({...doc, conceptName: conceptNameNoFileExtension});
             }
         }
     } catch (e) {
         console.log('Failed to read ' + conceptName, e);
     }
 }
+console.log(`Loaded ${exercises.length} exercises.`);
 
 // Add lessons to courses which are sets of hand-picked sentences.
 const lessons = [];
@@ -74,6 +86,7 @@ for(const lessonName of lessonNames) {
         console.log('Failed to read ' + lessonName, e);
     }
 }
+console.log(`Loaded ${lessons.length} lessons.`);
 for(const lesson of lessons) {
     for(const exercise of lesson.exercises) {
         if (!exercises.includes(exercise+'.yml')) {
@@ -81,7 +94,8 @@ for(const lesson of lessons) {
         }
     }
     for(const [langPair, course] of Object.entries(coursesByLanguagePair)) {
-        const supportedExercises = lesson.exercises.filter(exerciseConceptName => course.exercerciseList.some(exercise => exercise.conceptName === exerciseConceptName));
+        const supported = exerciseNamesByLanguagePair[langPair];
+        const supportedExercises = lesson.exercises.filter(exerciseConceptName => supported.has(exerciseConceptName));
         if (supportedExercises.length > 0) {
             course.lessons.push({
                 ...lesson,
@@ -90,6 +104,7 @@ for(const lesson of lessons) {
         }
     }
 }
+console.log(`Constructed ${lessons.length} lessons.`);
 
 fs.mkdirSync('public/dist-data/courses/', { recursive: true });
 const courseIndex = {};
@@ -104,6 +119,8 @@ for(const [langPair, course] of Object.entries(coursesByLanguagePair)) {
     }
     fs.writeFileSync(`public/dist-data/courses/${langPair}.json`, JSON.stringify(courseCopy));
 }
+console.log(`Constructed ${Object.keys(coursesByLanguagePair).length} courses.`);
+
 fs.writeFileSync(`public/dist-data/courses/index.json`, JSON.stringify(courseIndex));
 
 function filterObject(object, retainLanguages) {
