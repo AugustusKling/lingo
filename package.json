@@ -3,7 +3,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "disclaimer": "yarn licenses generate-disclaimer > public/licenses-disclaimer.txt"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
