@@ -1,9 +1,15 @@
 import { CourseTile } from './CourseTile.js';
 import useLocalStorageState from 'use-local-storage-state';
-import { getProgressForCourse } from './util.js';
 import styles from './CourseList.module.scss';
+import { CourseMeta, Knowledge } from './util.js';
 
-export function CourseList({ courseIndex, knowledge, onCourseSelected }) {
+interface CourseListProps {
+    courseIndex: Record<string, CourseMeta>;
+    knowledge: Knowledge;
+    onCourseSelected?: (langPair: string) => void;
+}
+
+export function CourseList({ courseIndex, knowledge, onCourseSelected }: CourseListProps) {
     const sourceLanguages = Array.from(new Set(
         Object.keys(courseIndex).map(langPair => langPair.replace(/ to.*$/, ''))
     )).sort();
@@ -24,8 +30,7 @@ export function CourseList({ courseIndex, knowledge, onCourseSelected }) {
         {
             pairs.map(langPair => {
             const courseMeta = courseIndex[langPair];
-            const progress = getProgressForCourse(knowledge, langPair, courseMeta);
-            return <div className={styles.courseTile} key={langPair}><CourseTile langPair={langPair} courseMeta={ courseMeta } progress={progress} onClick={() => onCourseSelected?.(langPair) } /></div>;
+            return <div className={styles.courseTile} key={langPair}><CourseTile courseMeta={ courseMeta } onClick={() => onCourseSelected?.(langPair) } /></div>;
             })
         }
     </div>;

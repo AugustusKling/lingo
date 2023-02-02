@@ -1,16 +1,23 @@
 import { useState, useMemo, useEffect } from 'react';
-import { pickRandom } from './util.js';
+import { pickRandom, Course, Exercise } from './util.js';
 import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
 import styles from './LessonOngoing.module.scss';
+
+export interface LessonOngoingProps {
+    course: Course;
+    exercises: Exercise[];
+    onLessonDone?: () => void;
+    onExerciseConfirmed: (_: {course: Course, exercise: Exercise, answerCorrect: boolean}) => void;
+}
 
 function doAnswersMatch(a: string, b: string): boolean {
     const ignoreChars = /[.¿?,?!;"-]/g;
     return a.replace(ignoreChars, '').toLowerCase() === b.replace(ignoreChars, '').toLowerCase();
 }
 
-export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfirmed}) {
+export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfirmed}: LessonOngoingProps) {
     const [remainingExercises, setRemainingExercises] = useState(() => [...exercises]);
     const currentExercise = remainingExercises[0];
     const questionHint = currentExercise.descriptions?.[course.from];
@@ -25,7 +32,8 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     const [currentAnswer, setCurrentAnswer] = useState('');
     const [correctAnswerHintVisible, setCorrectAnswerHintVisible] = useState(false);
     
-    const [definitionOverlayData, setDefinitionOverlayData] = useState({
+    type DefinitionOverlayData = {visible: boolean; exercise: Exercise | null; title: string | null};
+    const [definitionOverlayData, setDefinitionOverlayData] = useState<DefinitionOverlayData>({
         visible: false,
         exercise: null,
         title: null
@@ -73,7 +81,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         }
     };
     
-    const showDefinitionOverlay = (exercise, title) => {
+    const showDefinitionOverlay = (exercise: Exercise, title: string) => {
         setDefinitionOverlayData({
             exercise,
             title,

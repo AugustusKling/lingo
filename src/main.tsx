@@ -2,8 +2,8 @@ import ReactDOM from 'react-dom/client';
 import { useState, useEffect } from 'react';
 import useLocalStorageState from 'use-local-storage-state'
 import { CourseDetails } from './CourseDetails.js';
-import { LessonOngoing} from './LessonOngoing.js';
-import { pickRandom, findWrongAnswers, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Exercise, byStatus } from './util.js';
+import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
+import { pickRandom, findWrongAnswers, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Exercise, byStatus, Knowledge } from './util.js';
 import { CourseList} from './CourseList.js';
 
 function App() {
@@ -33,9 +33,35 @@ function App() {
         }
         setHashInternal(hash);
     }
-    const [courseIndex, setCourseIndex] = useState<Record<string, CourseMeta>>(undefined);
-    const [knowledge, setKnowledge] = useLocalStorageState('knowledge', {
-        defaultValue: {}
+    const [courseIndex, setCourseIndex] = useState<Record<string, CourseMeta>>({});
+    const [knowledge, setKnowledge] = useLocalStorageState<Knowledge>('knowledge', {
+        defaultValue: {},
+        serializer: {
+            stringify: JSON.stringify,
+            parse: (raw: string | undefined): Knowledge => {
+                if (raw === undefined) {
+                    return {};
+                } else {
+                    const parsed = JSON.parse(raw);
+                    
+                    // Convert former progress by langPair.
+                    const toConvert = Object.keys(parsed).filter(key => key.includes(' to '));
+                    for (const oldKey of toConvert) {
+                        const targetKey = oldKey.replace(/^.+ to /, '');
+                        const target = parsed[targetKey] || {};
+                        parsed[targetKey] = target;
+                        
+                        for (const [conceptName, knowledgeExercise] of Object.entries(parsed[oldKey])) {
+                            target[conceptName] = knowledgeExercise;
+                        }
+                        
+                        delete parsed[oldKey];
+                    }
+                    
+                    return parsed;
+                }
+            }
+        }
     });
     const [stateActiveCourse, setStateActiveCourse] = useState<string | null>(null);
     const [activeCourseData, setActiveCourseData] = useState<Course | null>(null);
@@ -65,11 +91,11 @@ function App() {
         setHash('');
     };
     const progressForExercises = (exerciseNames: string[]) => {
-        return getProgressForExercises(knowledge, stateActiveCourse, exerciseNames, exerciseNames.length);
+        return getProgressForExercises(knowledge, activeCourseData.to, exerciseNames, exerciseNames.length);
     }
     
-    const showDynamicLesson = (exercisePicklist) => {
-        const exercisesByStatus = byStatus(knowledge[stateActiveCourse] || {}, exercisePicklist);
+    const showDynamicLesson = (exercisePicklist: Exercise[]) => {
+        const exercisesByStatus = byStatus(knowledge[activeCourseData.to] || {}, exercisePicklist);
         const amountToShow = Math.min(10, exercisePicklist.length);
         const picklistCopy = [...(exercisesByStatus.wrong || []), ...(exercisesByStatus.somewhat || [])];
         const picked: Exercise[] = [];
@@ -91,16 +117,15 @@ function App() {
         setHash('lesson');
     };
     
-    const onExerciseConfirmed = ({course, exercise, answerCorrect}) => {
-        const langPair = `${course.from} to ${course.to}`;
-        const knowledgeExercise = knowledge?.[langPair]?.[exercise.conceptName] || {
+    const onExerciseConfirmed: LessonOngoingProps['onExerciseConfirmed'] = ({course, exercise, answerCorrect}) => {
+        const knowledgeExercise = knowledge[course.to]?.[exercise.conceptName] || {
             lastAnswersCorrect: [],
             hiddenUntil: 0
         };
-        if(!knowledge[langPair]) {
-            knowledge[langPair] = {};
+        if(!knowledge[course.to]) {
+            knowledge[course.to] = {};
         }
-        knowledge[langPair][exercise.conceptName] = knowledgeExercise;
+        knowledge[course.to][exercise.conceptName] = knowledgeExercise;
         if(knowledgeExercise.lastAnswersCorrect.length > 9) {
             knowledgeExercise.lastAnswersCorrect.splice(0, 1);
         }
@@ -122,18 +147,18 @@ function App() {
     const showActiveCourseDetails = () => {
         setHash('course');
     };
-    const statusForExercise = (langPair, conceptName) => {
-        const langKnowledge = knowledge[langPair] || {};
+    const statusForExercise = (to: string, conceptName: string) => {
+        const langKnowledge = knowledge[to] || {};
         return statusForExerciseReact(langKnowledge, conceptName);
     }
     
     if (loading) {
         return 'Loading…';
-    } else if(hash==='course') {
+    } else if(hash==='course' && stateActiveCourse && activeCourseData) {
         const courseMeta = courseIndex[stateActiveCourse];
-        const progress = getProgressForCourse(knowledge, stateActiveCourse, courseMeta);
+        const progress = getProgressForCourse(knowledge, activeCourseData, courseMeta);
         return <CourseDetails course={activeCourseData} progress={progress} onBackToCourseList={onBackToCourseList} getProgressForExercises={progressForExercises} statusForExercise={statusForExercise} showDynamicLesson={showDynamicLesson}/>
-    } else if(hash==='lesson' || hash==='definition') {
+    } else if((hash==='lesson' || hash==='definition') && activeCourseData) {
         return <LessonOngoing course={activeCourseData} exercises={ongoingLessionExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={showActiveCourseDetails} />
     } else {
         return <CourseList courseIndex={ courseIndex } knowledge={knowledge} onCourseSelected={onCourseSelected} />;

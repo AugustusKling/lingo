@@ -25,7 +25,6 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
         });
     };
     const renderDynamic = () => {
-        const langPair = `${course.from} to ${course.to}`;
         const byLength = course.exercerciseList.map(exercise => {
             const lengths = exercise.translations[course.to].map(t => t.text.length);
             return {
@@ -41,10 +40,10 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
             };
         }).sort((a, b) => a.length - b.length);
         const dynamic = {
-            Training: course.exercerciseList.filter(exercise => ['wrong', 'somewhat'].includes(statusForExercise(langPair, exercise.conceptName))),
+            Training: course.exercerciseList.filter(exercise => ['wrong', 'somewhat'].includes(statusForExercise(course.to, exercise.conceptName))),
             Short: byLength.slice(0, 100).map(wrapper => wrapper.exercise),
             'Few Words': byWordCount.slice(0, 100).map(wrapper => wrapper.exercise),
-            New: course.exercerciseList.filter(exercise => 'unseen' === statusForExercise(langPair, exercise.conceptName)),
+            New: course.exercerciseList.filter(exercise => 'unseen' === statusForExercise(course.to, exercise.conceptName)),
             Uncategorized: course.exercerciseList.filter(exercise => exercise.categories.length === 0)
         };
         return Object.entries(dynamic).map(([dynamicTitle, exercises]) => {

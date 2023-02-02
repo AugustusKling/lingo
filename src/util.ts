@@ -4,7 +4,7 @@ interface ExerciseKnowledge {
 }
 type ExerciseStatus = 'unseen' | 'learned' | 'wrong' | 'somewhat';
 type LangKnowledge = Record<Exercise['conceptName'], ExerciseKnowledge>;
-type Knowledge = Record<string, LangKnowledge>;
+export type Knowledge = Record<string, LangKnowledge>;
 
 export interface Course {
     from: string;
@@ -39,8 +39,9 @@ export interface CourseMeta {
 export function pickRandom<X>(array: Array<X>): X {
     return array[Math.floor(Math.random() * array.length)];
 }
-function group<X, Key extends string>(array: X[], mapper: (x: X) => key): Record<Key, X[]> {
-    const result:Record<Key, X[]> = {};
+
+function group<X, Key extends string>(array: X[], mapper: (x: X) => Key): Partial<Record<Key, X[]>> {
+    const result: Partial<Record<Key, X[]>> = {};
     for(const value of array) {
         const key = mapper(value);
         const maybeList = result[key];
@@ -80,7 +81,7 @@ export function findWrongAnswers(exercise: Exercise, amount: number, exercercise
     return wrong;
 }
 
-export function speak(text: string, voices: Voice[]): void {
+export function speak(text: string, voices: SpeechSynthesisVoice[]): void {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice = pickRandom(voices);
     // Workaround for Chrome bug not respecting voice's language.
@@ -88,13 +89,12 @@ export function speak(text: string, voices: Voice[]): void {
     speechSynthesis.speak(utterance);
 }
 
-export function getProgressForCourse(knowledge: Knowledge, langPair: string, courseMeta: CourseMeta) {
-    const langKnowledge = knowledge[langPair] || {};
-    const exerciseNames = Object.keys(langKnowledge);
-    return getProgressForExercises(knowledge, langPair, exerciseNames, courseMeta.exercises);
+export function getProgressForCourse(knowledge: Knowledge, course: Course, courseMeta: CourseMeta) {
+    const exerciseNames = course.exercerciseList.map(exercise => exercise.conceptName);
+    return getProgressForExercises(knowledge, course.to, exerciseNames, courseMeta.exercises);
 }
-export function getProgressForExercises(knowledge: Knowledge, langPair: string, exerciseNames: string[], totalExercises: number) {
-    const langKnowledge = knowledge[langPair] || {};
+export function getProgressForExercises(knowledge: Knowledge, to: string, exerciseNames: string[], totalExercises: number) {
+    const langKnowledge = knowledge[to] || {};
     const exerciseStatus = exerciseNames.map(exerciseName => statusForExerciseReact(langKnowledge, exerciseName));
     const statusWrong = exerciseStatus.filter(status => status === 'wrong').length;
     const statusSomewhat = exerciseStatus.filter(status => status === 'somewhat').length;
@@ -122,5 +122,11 @@ export function statusForExerciseReact(langKnowledge: LangKnowledge, exerciseNam
 }
 
 export function byStatus(langKnowledge: LangKnowledge, exercises: Exercise[]): Record<ExerciseStatus, Exercise[]> {
-    return group(exercises, e => statusForExerciseReact(langKnowledge, e.conceptName));
+    const grouped = group(exercises, e => statusForExerciseReact(langKnowledge, e.conceptName));
+    return Object.assign({
+        unseen: [],
+        wrong: [],
+        somewhat: [],
+        learned: [],
+    }, grouped);
 }
