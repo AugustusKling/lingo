@@ -41,7 +41,7 @@ export function AnswerPick({course, currentExercise, correctAnswer, currentAnswe
     
     const renderAnswerOptions = () => {
         return answerOptions.map((answerOption, index) => {
-            const infoButton = <button onClick={e => showDefinition(answerOption, e)}>Info</button>;
+            const infoButton = <button className={styles.buttonDefinition} onClick={e => showDefinition(answerOption, e)}>Info</button>;
             const answerClasses = currentAnswer===answerOption.text ? `${styles.answer} ${styles.selected}` : styles.answer;
             if (acousticPick) {
                 return <p className={answerClasses} onClick={() => onSelect(answerOption.text)} key={index}>

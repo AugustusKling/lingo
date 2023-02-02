@@ -12,6 +12,12 @@
         font-weight: bold;
     }
 }
-.pickAnswer .answer:hover {
-    outline: 1px solid;
+@media(hover: hover) {
+    .pickAnswer .answer:hover {
+        outline: 1px solid;
+    }
+}
+
+.buttonDefinition {
+    margin-left: 0.5rem;
 }
