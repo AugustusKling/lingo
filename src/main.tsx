@@ -90,12 +90,12 @@ function App() {
     const onBackToCourseList = () => {
         setHash('');
     };
-    const progressForExercises = (exerciseNames: string[]) => {
-        return getProgressForExercises(knowledge, activeCourseData.to, exerciseNames, exerciseNames.length);
+    const progressForExercises = (lang: string, exerciseNames: string[]) => {
+        return getProgressForExercises(knowledge, lang, exerciseNames, exerciseNames.length);
     }
     
-    const showDynamicLesson = (exercisePicklist: Exercise[]) => {
-        const exercisesByStatus = byStatus(knowledge[activeCourseData.to] || {}, exercisePicklist);
+    const showDynamicLesson = (lang: string, exercisePicklist: Exercise[]) => {
+        const exercisesByStatus = byStatus(knowledge[lang] || {}, exercisePicklist);
         const amountToShow = Math.min(10, exercisePicklist.length);
         const picklistCopy = [...(exercisesByStatus.wrong || []), ...(exercisesByStatus.somewhat || [])];
         const picked: Exercise[] = [];

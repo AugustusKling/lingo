@@ -1,12 +1,21 @@
-import { speak } from './util.js';
+import { speak, Exercise, Translation } from './util.js';
 import styles from './DefinitionOverlay.module.scss';
 
-const licenseNames = {
-    'https://creativecommons.org/licenses/by-sa/3.0/': 'CC BY-SA 3.0'
+const licenseNames: Partial<Record<string, string>> = {
+    'https://creativecommons.org/licenses/by-sa/3.0/': 'CC BY-SA 3.0',
+    'https://creativecommons.org/licenses/by/2.0/fr/': 'Attribution 2.0 France (CC BY 2.0 FR)'
 };
 
-export function DefinitionOverlay({exercise, title, from, to, onBackToExercise}) {
-    const renderTranslations = (lang) => {
+interface DefinitionOverlayProps {
+    exercise: Exercise;
+    title: string;
+    from: string;
+    to: string;
+    onBackToExercise?: () => void;
+}
+
+export function DefinitionOverlay({exercise, title, from, to, onBackToExercise}: DefinitionOverlayProps) {
+    const renderTranslations = (lang: string) => {
         const voices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(lang));
         const hasVoices = voices.length > 0;
 
@@ -34,7 +43,10 @@ export function DefinitionOverlay({exercise, title, from, to, onBackToExercise})
     </div>;
 }
 
-function Source({translation}) {
+interface SourceProps {
+    translation: Translation & { source: string; };
+}
+function Source({translation}: SourceProps) {
     const sourceHtml = document.createElement('a');
     sourceHtml.href = translation.source;
     
@@ -44,7 +56,10 @@ function Source({translation}) {
     </a>;
 }
 
-function Licence({translation}) {
+interface LicenceProps {
+    translation: Translation & { licence: string; };
+}
+function Licence({translation}: LicenceProps) {
     return <a href={translation.licence}>
         Licence: {licenseNames[translation.licence] || translation.licence}
     </a>;

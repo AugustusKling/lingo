@@ -1,8 +1,18 @@
-import { useState, useMemo } from 'react';
-import { pickRandom, findWrongAnswers, speak } from './util.js';
+import { useState, useMemo, MouseEvent } from 'react';
+import { pickRandom, findWrongAnswers, speak, Course, Exercise, Translation } from './util.js';
 import styles from './AnswerPick.module.scss';
 
-export function AnswerPick({course, currentExercise, correctAnswer, currentAnswer, onSelect, onConfirm, onShowDefinition}) {
+interface AnswerPickProps {
+    course: Course;
+    currentExercise: Exercise;
+    correctAnswer: Translation;
+    currentAnswer: string;
+    onSelect: (answer: string) => void;
+    onConfirm: (answer: string) => void;
+    onShowDefinition: (exercise: Exercise, title: string) => void;
+}
+
+export function AnswerPick({course, currentExercise, correctAnswer, currentAnswer, onSelect, onConfirm, onShowDefinition}: AnswerPickProps) {
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course.exercerciseList, course.to),
         [course, currentExercise]
@@ -28,11 +38,11 @@ export function AnswerPick({course, currentExercise, correctAnswer, currentAnswe
         [voices]
     );
     
-    const speakAndSelect = (answerOption) => {
+    const speakAndSelect = (answerOption: Translation) => {
         speak(answerOption.text, voices);
         onSelect(answerOption.text);
     };
-    const showDefinition = (answerOption, e) => {
+    const showDefinition = (answerOption: Translation, e: MouseEvent) => {
         e.stopPropagation();
         
         const exerciseForOption = wrongAnswers.find(wrongAnswer => Object.values(wrongAnswer.translations[course.to]).some(t => t === answerOption)) || currentExercise;

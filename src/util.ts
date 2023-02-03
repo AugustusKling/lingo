@@ -2,7 +2,7 @@ interface ExerciseKnowledge {
     lastAnswersCorrect: boolean[];
     hiddenUntil: number;
 }
-type ExerciseStatus = 'unseen' | 'learned' | 'wrong' | 'somewhat';
+export type ExerciseStatus = 'unseen' | 'learned' | 'wrong' | 'somewhat';
 type LangKnowledge = Record<Exercise['conceptName'], ExerciseKnowledge>;
 export type Knowledge = Record<string, LangKnowledge>;
 
@@ -15,6 +15,7 @@ export interface Course {
 export interface Lesson {
     title: Record<string, string>;
     description?: Record<string, string>;
+    order?: number;
     exercises: string[];
 }
 export interface Exercise {
@@ -23,10 +24,11 @@ export interface Exercise {
     categories: string[];
     translations: Record<string, Translation[]>;
 }
-interface Translation {
+export interface Translation {
     text: string;
     source?: string;
     licence?: string;
+    author?: string;
 }
 
 export interface CourseMeta {

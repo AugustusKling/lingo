@@ -32,17 +32,22 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     const [currentAnswer, setCurrentAnswer] = useState('');
     const [correctAnswerHintVisible, setCorrectAnswerHintVisible] = useState(false);
     
-    type DefinitionOverlayData = {visible: boolean; exercise: Exercise | null; title: string | null};
+    type DefinitionOverlayData = {visible: false; exercise: null; title: null;} | {visible: true; exercise: Exercise; title: string;};
     const [definitionOverlayData, setDefinitionOverlayData] = useState<DefinitionOverlayData>({
         visible: false,
         exercise: null,
         title: null
     });
     useEffect(() => {
-        const updateOverlayVisibility = () => setDefinitionOverlayData(old => ({
-            ...old,
-            visible: location.hash==='#definition'
-        }));
+        const updateOverlayVisibility = () => {
+            if (location.hash !== '#definition') {
+                setDefinitionOverlayData({
+                    visible: false,
+                    exercise: null,
+                    title: null
+                });
+            }
+        };
         addEventListener('hashchange', updateOverlayVisibility);
         return () => removeEventListener('hashchange', updateOverlayVisibility);
     }, []);

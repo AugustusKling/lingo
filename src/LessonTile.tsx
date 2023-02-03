@@ -1,22 +1,22 @@
 import {Progress, ProgressInfo} from './Progress.js';
 import styles from './LessonTile.module.scss';
-import {Course, Exercise, Lesson} from './util.js';
+import {Course, Lesson} from './util.js';
 
-interface Props {
+interface LessonTileProps {
     course: Course;
     lesson?: Lesson;
     title: string;
-    exercises: Exercise[];
+    exerciseCount: number;
     onExercisesSelected: () => void;
     progress: ProgressInfo
 }
 
-export function LessonTile({course, lesson, title, exercises, onExercisesSelected, progress}: Props) {
+export function LessonTile({course, lesson, title, exerciseCount, onExercisesSelected, progress}: LessonTileProps) {
     const description = lesson?.description?.[course.to] || lesson?.description?.[course.from];
     return <div className={styles.lesson} onClick={ () => onExercisesSelected?.() }>
         <h1 className={styles.title}>{ title }</h1>
         <Progress progress={progress} />
         { description && <p>{description}</p>}
-        <p>{exercises.length} exercises</p>
+        <p>{exerciseCount} exercises</p>
     </div>;
 }

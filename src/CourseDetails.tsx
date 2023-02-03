@@ -1,18 +1,28 @@
-import {Progress} from './Progress.js';
-import {LessonTile} from './LessonTile.js';
+import { Progress, ProgressInfo } from './Progress.js';
+import { LessonTile } from './LessonTile.js';
 import styles from './CourseDetails.module.scss';
+import { Course, Exercise, ExerciseStatus } from './util.js';
 
-export function CourseDetails ({course, progress, onBackToCourseList, getProgressForExercises, statusForExercise, showDynamicLesson}) {
+interface CourseDetailsProps {
+    course: Course;
+    progress: ProgressInfo;
+    onBackToCourseList?: () => void;
+    getProgressForExercises: (lang: string, exercises: string[]) => ProgressInfo;
+    statusForExercise: (lang: string, conceptName: string) => ExerciseStatus;
+    showDynamicLesson: (lang: string, exercises: Exercise[]) => void;
+}
+
+export function CourseDetails ({course, progress, onBackToCourseList, getProgressForExercises, statusForExercise, showDynamicLesson}: CourseDetailsProps) {
     const renderLessonTiles = () => {
-        const sortedLessons = [...course.lessons].sort((a, b) => a.order - b.order);
+        const sortedLessons = [...course.lessons].sort((a, b) => (a.order || 0) - (b.order || 0));
         return sortedLessons.map((lesson, index) => {
             const title = lesson.title[course.to] || lesson.title[course.from];
             const exercises = course.exercerciseList.filter(exercise => lesson.exercises.includes(exercise.conceptName));
-            return <LessonTile course={course} lesson={lesson} title={title} exercises={lesson.exercises} progress={getProgressForExercises(lesson.exercises)} onExercisesSelected={() => showDynamicLesson(exercises)} key={index} />;
+            return <LessonTile course={course} lesson={lesson} title={title} exerciseCount={lesson.exercises.length} progress={getProgressForExercises(course.to, lesson.exercises)} onExercisesSelected={() => showDynamicLesson(course.to, exercises)} key={index} />;
         });
     };
     const renderCategories = () => {
-        const categoriesInCourse = new Set();
+        const categoriesInCourse = new Set<string>();
         course.exercerciseList.flatMap(exercise => exercise.categories).forEach(category => categoriesInCourse.add(category));
         if (categoriesInCourse.size === 0) {
             return <p>No exercises found.</p>;
@@ -21,7 +31,7 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
         return categoriesInCourseArray.map((category, index) => {
             const exercisesInCategory = course.exercerciseList.filter(exercise => exercise.categories.includes(category));
             const exerciseNames = exercisesInCategory.map(exercise => exercise.conceptName);
-            return <LessonTile course={course} title={category} exercises={exercisesInCategory} progress={getProgressForExercises(exerciseNames)} onExercisesSelected={() => showDynamicLesson(exercisesInCategory)} key={index} />;
+            return <LessonTile course={course} title={category} exerciseCount={exercisesInCategory.length} progress={getProgressForExercises(course.to, exerciseNames)} onExercisesSelected={() => showDynamicLesson(course.to, exercisesInCategory)} key={index} />;
         });
     };
     const renderDynamic = () => {
@@ -48,13 +58,13 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
         };
         return Object.entries(dynamic).map(([dynamicTitle, exercises]) => {
             const exerciseNames = exercises.map(exercise => exercise.conceptName);
-            return <LessonTile course={course} title={dynamicTitle} exercises={exercises} progress={getProgressForExercises(exerciseNames)} onExercisesSelected={() => showDynamicLesson(exercises)} key={dynamicTitle} />;
+            return <LessonTile course={course} title={dynamicTitle} exerciseCount={exercises.length} progress={getProgressForExercises(course.to, exerciseNames)} onExercisesSelected={() => showDynamicLesson(course.to, exercises)} key={dynamicTitle} />;
         });
     };
     const languagesInEnglish = new Intl.DisplayNames(['en'], { type: 'language' });
     return <div className="course">
         <h1 className="title">{languagesInEnglish.of(course.to)}</h1>
-        <Progress className={styles.progress} progress={progress} />
+        <Progress progress={progress} />
         <button className={styles.buttonBack} onClick={ () => onBackToCourseList?.() }>Back to course list</button>
         <h2>Lessons</h2>
         <div className={styles.lessons}>{ renderLessonTiles() }</div>

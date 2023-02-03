@@ -1,6 +1,7 @@
 .progress {
     height: 0.5rem;
     display: flex;
+    border: 1px solid darkgray;
 
     > .wrong {
         background: red;
