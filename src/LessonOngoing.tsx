@@ -58,6 +58,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     );
     
     const showNextExcercise = () => {
+        setCorrectAnswerHintVisible(false);
         if(remainingExercises.length === 1) {
             onLessonDone?.();
         } else {
@@ -68,7 +69,6 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     const confirm = (answerText: string) => {
         setCurrentAnswer(answerText);
         if (correctAnswerHintVisible) {
-            setCorrectAnswerHintVisible(false);
             showNextExcercise();
         } else {
             const answerCorrect = currentExercise.translations[course.to].some(correctOption => doAnswersMatch(correctOption.text, answerText));
@@ -106,7 +106,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         }
     }
     
-    return <><div>
+    return <><div className={styles.fullHeight}>
         <progress max={exercises.length} value={1 + exercises.length - remainingExercises.length} className={styles.progress}></progress>
         <div className={styles.head}>
             <div className={styles.question}>{question.text}</div>

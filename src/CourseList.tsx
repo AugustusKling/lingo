@@ -33,5 +33,6 @@ export function CourseList({ courseIndex, knowledge, onCourseSelected }: CourseL
             return <div className={styles.courseTile} key={langPair}><CourseTile courseMeta={ courseMeta } onClick={() => onCourseSelected?.(langPair) } /></div>;
             })
         }
+        <a href="licenses-disclaimer.txt" className={styles.disclaimer}>Software components and license info</a>
     </div>;
 }

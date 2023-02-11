@@ -62,7 +62,7 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
         });
     };
     const languagesInEnglish = new Intl.DisplayNames(['en'], { type: 'language' });
-    return <div className="course">
+    return <div className={styles.course}>
         <h1 className="title">{languagesInEnglish.of(course.to)}</h1>
         <Progress progress={progress} />
         <button className={styles.buttonBack} onClick={ () => onBackToCourseList?.() }>Back to course list</button>

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { pickRandom, findWrongAnswers, Course, Exercise, Translation } from './util.js';
 import styles from './AnswerType.module.scss';
 
@@ -35,8 +35,10 @@ export function AnswerType({course, currentExercise, correctAnswer, currentAnswe
         [answerOptions]
     );
     
-    const typeAnswerInputHtmlRef = useRef(null);
-    const addSuggestion = (wordSuggestion: string) => {
+    const [dummyTextareaVisible, setDummyTextareaVisible] = useState(true);
+    
+    const addSuggestion = (e: MouseEvent, wordSuggestion: string) => {
+        e.target.classList.add(styles.clicked);
         if (currentAnswer === '') {
             onChange(wordSuggestion);
         } else if (/^[.¿?,?!;"]$/.test(wordSuggestion)) {
@@ -45,15 +47,19 @@ export function AnswerType({course, currentExercise, correctAnswer, currentAnswe
             onChange(currentAnswer + ' ' + wordSuggestion);
         }
     };
+    const removeAnimation = (e) => {
+        e.target.classList.remove(styles.clicked);
+    }
     
     return <div className={styles.typeAnswer}>
         <p>Type translation</p>
         <div className={styles.textInput}>
-            <input type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} /><button onClick={() => onChange('')}>Clear</button>
+            { dummyTextareaVisible ? <div className={styles.textarea} onClick={() => setDummyTextareaVisible(false)}>&#8203;{currentAnswer}</div>
+            : <textarea type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} />}<button onClick={() => onChange('')}>Clear</button>
         </div>
-        <div className={styles.wordSuggestions}>{
+        <div className={styles.wordSuggestions} onAnimationEnd={removeAnimation}>{
             wordSuggestions.map(suggestion => {
-                return <p className={styles.wordSuggestion} onClick={() => addSuggestion(suggestion)} key={suggestion}>{suggestion}</p>;
+                return <p className={styles.wordSuggestion} onClick={e => addSuggestion(e, suggestion)} key={suggestion}>{suggestion}</p>;
             })
         }</div>
     </div>;

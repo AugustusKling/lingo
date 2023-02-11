@@ -1,3 +1,11 @@
+.fullHeight {
+    min-height: calc(100vh - 2rem);
+    min-height: calc(100dvh - 2rem);
+    margin: 1rem;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+}
+
 .progress {
     width: 100%;
 }
@@ -33,7 +41,7 @@
     padding-left: 0.5rem;
 }
 .buttons {
-    margin: 2rem 0;
+    margin: 2rem 0 0;
     display: flex;
     justify-content: space-between;
 }

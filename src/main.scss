@@ -1,14 +1,10 @@
 body {
     font-family: sans-serif;
+    margin: 0;
     
     > * {
         max-width: 400px;
         margin: auto;
-    }
-    
-    .disclaimer {
-        display: block;
-        margin-top: 3rem;
     }
 }
 
@@ -33,6 +29,10 @@ button {
         .disclaimer {
             color: darkgray;
         }
+    }
+    
+    :link, :visited {
+        color: darkgray;
     }
     
     input[type=text], button {
