@@ -4,6 +4,7 @@ import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
 import styles from './LessonOngoing.module.scss';
+import {diffChars, diffWords} from 'diff';
 
 export interface LessonOngoingProps {
     course: Course;
@@ -106,6 +107,31 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         }
     }
     
+    const renderWrongAndCorrectAnswer = () => {
+        const charDiff = diffChars(currentAnswer, correctAnswer.text);
+        const numErrorChars = charDiff.filter(section => section.added || section.removed).reduce((acc, section) => acc + section.value.length, 0);
+        const errorRate = numErrorChars / correctAnswer.text.length;
+        const diff = errorRate < 0.2 ? charDiff : diffWords(currentAnswer, correctAnswer.text);
+        return <div className={styles.correctAnswerHint} style={ {display: correctAnswerHintVisible ? 'block' : 'none'} }>
+            <p>Your answer</p>
+            <p className={styles.wrongAnswer}>{diff.map(section => {
+                if (section.removed) {
+                    return <span className={styles.diffWrong}>{section.value}</span>
+                } else if (!section.added) {
+                    return section.value;
+                }
+            })}</p>
+            <p>Correct answer</p>
+            <p className={styles.correctAnswer}>{diff.map(section => {
+                if (section.added) {
+                    return <span className={styles.diffCorrected}>{section.value}</span>
+                } else if (!section.removed) {
+                    return section.value;
+                }
+            })}</p>
+        </div>
+    }
+    
     return <><div className={styles.fullHeight}>
         <progress max={exercises.length} value={1 + exercises.length - remainingExercises.length} className={styles.progress}></progress>
         <div className={styles.head}>
@@ -113,14 +139,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
             <div className={styles.questionHint}>{questionHint}</div>
             <button className={styles.buttonDefinition} onClick={() => showDefinitionOverlay(currentExercise, question.text)}>Info</button>
         </div>
-        { !correctAnswerHintVisible ? renderAnswerMeans() :
-            <div className={styles.correctAnswerHint} style={ {display: correctAnswerHintVisible ? 'block' : 'none'} }>
-                <p>Your answer</p>
-                <p className={styles.wrongAnswer}>{currentAnswer}</p>
-                <p>Correct answer</p>
-                <p className={styles.correctAnswer}>{correctAnswer.text}</p>
-            </div>
-        }
+        { !correctAnswerHintVisible ? renderAnswerMeans() : renderWrongAndCorrectAnswer() }
         <div className={styles.buttons}>
             <button onClick={() => onLessonDone?.() }>Abort</button>
             <button onClick={() => showNextExcercise()}>Skip</button>

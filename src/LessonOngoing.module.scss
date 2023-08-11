@@ -32,6 +32,17 @@
 .correctAnswerHint {
     border: 1rem solid orange;
     margin: 1rem 0;
+    
+    .diffWrong {
+        color: red;
+        text-decoration: wavy underline;
+        background: #ffb6b6;
+    }
+    .diffCorrected {
+        color: green;
+        text-decoration: wavy underline;
+        background: #ceffce
+    }
 }
 .correctAnswerHint p {
     margin: 1rem;
@@ -44,4 +55,15 @@
     margin: 2rem 0 0;
     display: flex;
     justify-content: space-between;
+}
+
+@media (prefers-color-scheme: dark) {
+    .correctAnswerHint {
+        .diffWrong {
+            background: #3a0404;
+        }
+        .diffCorrected {
+            background: #002000;
+        }
+    }
 }
