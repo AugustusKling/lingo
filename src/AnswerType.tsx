@@ -8,9 +8,10 @@ interface AnswerTypeProps {
     correctAnswer: Translation;
     currentAnswer: string;
     onChange: (answer: string) => void;
+    hint: string;
 }
 
-export function AnswerType({course, currentExercise, correctAnswer, currentAnswer, onChange}: AnswerTypeProps) {
+export function AnswerType({course, currentExercise, correctAnswer, currentAnswer, onChange, hint}: AnswerTypeProps) {
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course.exercerciseList, course.to),
         [course, currentExercise]
@@ -29,8 +30,8 @@ export function AnswerType({course, currentExercise, correctAnswer, currentAnswe
     
     const wordSuggestions = useMemo(
         () => Array.from(new Set([
-            ...answerOptions.flatMap(answerOption => answerOption.text.split(/\s+|[.¿?,?!;"]/)).filter(wordSuggestion => wordSuggestion !== ''),
-            ...answerOptions.flatMap(answerOption => Array.from(new Set(answerOption.text.replace(/[^.¿?,?!;"]/g, ''))))
+            ...answerOptions.flatMap(answerOption => answerOption.text.split(/\s+|[.¿?,?!;"””]/)).filter(wordSuggestion => wordSuggestion !== ''),
+            ...answerOptions.flatMap(answerOption => Array.from(new Set(answerOption.text.replace(/[^.¿?,?!;"””]/g, ''))))
         ])).sort(() => Math.random() - 0.5),
         [answerOptions]
     );
@@ -52,7 +53,7 @@ export function AnswerType({course, currentExercise, correctAnswer, currentAnswe
     }
     
     return <div className={styles.typeAnswer}>
-        <p>Type translation</p>
+        <p>{ hint }</p>
         <div className={styles.textInput}>
             { dummyTextareaVisible ? <div className={styles.textarea} onClick={() => setDummyTextareaVisible(false)}>&#8203;{currentAnswer}</div>
             : <textarea type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} />}<button onClick={() => onChange('')}>Clear</button>

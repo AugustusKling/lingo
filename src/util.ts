@@ -88,6 +88,7 @@ export function speak(text: string, voices: SpeechSynthesisVoice[]): void {
     utterance.voice = pickRandom(voices);
     // Workaround for Chrome bug not respecting voice's language.
     utterance.lang = utterance.voice.lang;
+    speechSynthesis.cancel();
     speechSynthesis.speak(utterance);
 }
 

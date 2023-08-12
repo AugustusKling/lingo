@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { pickRandom, Course, Exercise } from './util.js';
+import { pickRandom, Course, Exercise, speak } from './util.js';
 import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
@@ -22,13 +22,17 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     const [remainingExercises, setRemainingExercises] = useState(() => [...exercises]);
     const currentExercise = remainingExercises[0];
     const questionHint = currentExercise.descriptions?.[course.from];
-    const question = useMemo(
-        () => pickRandom(currentExercise.translations[course.from]),
-        [currentExercise, course]
+    const voices = useMemo(
+        () => speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(course.to)),
+        [course]
     );
-    const correctAnswer = useMemo(
-        () => pickRandom(currentExercise.translations[course.to]),
-        [currentExercise, course]
+    const speakAnswerAsQuestionMode = useMemo(
+        () => voices.length > 0 && Math.random() < 0.3,
+        [voices, currentExercise]
+    );
+    const question = useMemo(
+        () => pickRandom(currentExercise.translations[speakAnswerAsQuestionMode ? course.to : course.from]),
+        [currentExercise, course, speakAnswerAsQuestionMode]
     );
     const [currentAnswer, setCurrentAnswer] = useState('');
     const [correctAnswerHintVisible, setCorrectAnswerHintVisible] = useState(false);
@@ -52,6 +56,15 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         addEventListener('hashchange', updateOverlayVisibility);
         return () => removeEventListener('hashchange', updateOverlayVisibility);
     }, []);
+    
+    const correctAnswer = useMemo(
+        () => speakAnswerAsQuestionMode ? question : pickRandom(currentExercise.translations[course.to]),
+        [currentExercise, course, question, speakAnswerAsQuestionMode]
+    );
+    const acousticPick = useMemo(
+        () => !speakAnswerAsQuestionMode && voices.length > 0 && Math.random() < 0.5,
+        [voices, speakAnswerAsQuestionMode]
+    );
     
     const typeAnswerMode = useMemo(
         () => Math.random() > 0.5 && question.text.includes(' '),
@@ -101,9 +114,13 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     
     const renderAnswerMeans = () => {
         if (typeAnswerMode) {
-            return <AnswerType course={course} currentExercise={currentExercise} correctAnswer={correctAnswer} currentAnswer={currentAnswer} onChange={setCurrentAnswer} />;
+            return <AnswerType course={course} currentExercise={currentExercise} correctAnswer={correctAnswer} currentAnswer={currentAnswer} onChange={setCurrentAnswer} hint={
+                speakAnswerAsQuestionMode ? 'Type what you heard' : 'Type translation'
+            } />;
         } else {
-            return <AnswerPick course={course} currentExercise={currentExercise} correctAnswer={correctAnswer} currentAnswer={currentAnswer} onSelect={setCurrentAnswer} onConfirm={confirm} onShowDefinition={showDefinitionOverlay} />;
+            return <AnswerPick course={course} currentExercise={currentExercise} correctAnswer={correctAnswer} currentAnswer={currentAnswer} onSelect={setCurrentAnswer} onConfirm={confirm} onShowDefinition={showDefinitionOverlay} voices={voices} acousticPick={acousticPick} hint={
+                speakAnswerAsQuestionMode ? 'Pick what you heard' : 'Pick correct translation'
+            } />;
         }
     }
     
@@ -132,13 +149,24 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         </div>
     }
     
-    return <><div className={styles.fullHeight}>
-        <progress max={exercises.length} value={1 + exercises.length - remainingExercises.length} className={styles.progress}></progress>
-        <div className={styles.head}>
+    const renderReadQuestion = () => {
+        return <>
+            <button onClick={() => speak(question.text, voices) }>Speak sentence to match</button>
+            <button onClick={() => showDefinitionOverlay(currentExercise, question.text)}>Info</button>
+        </>;
+    };
+    
+    const renderShowQuestion = () => {
+        return <>
             <div className={styles.question}>{question.text}</div>
             <div className={styles.questionHint}>{questionHint}</div>
             <button className={styles.buttonDefinition} onClick={() => showDefinitionOverlay(currentExercise, question.text)}>Info</button>
-        </div>
+        </>;
+    };
+    
+    return <><div className={styles.fullHeight}>
+        <progress max={exercises.length} value={1 + exercises.length - remainingExercises.length} className={styles.progress}></progress>
+        <div className={styles.head}>{speakAnswerAsQuestionMode ? renderReadQuestion() : renderShowQuestion() }</div>
         { !correctAnswerHintVisible ? renderAnswerMeans() : renderWrongAndCorrectAnswer() }
         <div className={styles.buttons}>
             <button onClick={() => onLessonDone?.() }>Abort</button>

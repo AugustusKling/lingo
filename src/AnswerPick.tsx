@@ -10,9 +10,12 @@ interface AnswerPickProps {
     onSelect: (answer: string) => void;
     onConfirm: (answer: string) => void;
     onShowDefinition: (exercise: Exercise, title: string) => void;
+    voices: SpeechSynthesisVoice[];
+    acousticPick: boolean;
+    hint: string;
 }
 
-export function AnswerPick({course, currentExercise, correctAnswer, currentAnswer, onSelect, onConfirm, onShowDefinition}: AnswerPickProps) {
+export function AnswerPick({course, currentExercise, correctAnswer, currentAnswer, onSelect, onConfirm, onShowDefinition, voices, acousticPick, hint}: AnswerPickProps) {
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course.exercerciseList, course.to),
         [course, currentExercise]
@@ -27,15 +30,6 @@ export function AnswerPick({course, currentExercise, correctAnswer, currentAnswe
             return answerOptions;
         },
         [course, currentExercise, correctAnswer, wrongAnswers]
-    );
-    
-    const voices = useMemo(
-        () => speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(course.to)),
-        [course]
-    );
-    const acousticPick = useMemo(
-        () => voices.length > 0 && Math.random() < 0.5,
-        [voices]
     );
     
     const speakAndSelect = (answerOption: Translation) => {
@@ -68,7 +62,7 @@ export function AnswerPick({course, currentExercise, correctAnswer, currentAnswe
     };
     
     return <div className={styles.pickAnswer}>
-        <p>Pick correct translation</p>
+        <p>{ hint }</p>
         { renderAnswerOptions() }
     </div>;
 }
