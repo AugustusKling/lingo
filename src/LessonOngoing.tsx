@@ -4,7 +4,7 @@ import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
 import styles from './LessonOngoing.module.scss';
-import {diffChars, diffWords} from 'diff';
+import {diffStringsRaw, DIFF_EQUAL, DIFF_DELETE, DIFF_INSERT} from 'jest-diff';
 
 export interface LessonOngoingProps {
     course: Course;
@@ -125,25 +125,27 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     }
     
     const renderWrongAndCorrectAnswer = () => {
-        const charDiff = diffChars(currentAnswer, correctAnswer.text);
-        const numErrorChars = charDiff.filter(section => section.added || section.removed).reduce((acc, section) => acc + section.value.length, 0);
-        const errorRate = numErrorChars / correctAnswer.text.length;
-        const diff = errorRate < 0.2 ? charDiff : diffWords(currentAnswer, correctAnswer.text);
+        const diff = diffStringsRaw(currentAnswer, correctAnswer.text, true);
+        console.log(diff);
         return <div className={styles.correctAnswerHint} style={ {display: correctAnswerHintVisible ? 'block' : 'none'} }>
             <p>Your answer</p>
             <p className={styles.wrongAnswer}>{diff.map(section => {
-                if (section.removed) {
-                    return <span className={styles.diffWrong}>{section.value}</span>
-                } else if (!section.added) {
-                    return section.value;
+                const sectionState = section[0];
+                const sectionValue = section[1];
+                if (sectionState===DIFF_DELETE) {
+                    return <span className={styles.diffWrong}>{sectionValue}</span>
+                } else if (sectionState!==DIFF_INSERT) {
+                    return sectionValue;
                 }
             })}</p>
             <p>Correct answer</p>
             <p className={styles.correctAnswer}>{diff.map(section => {
-                if (section.added) {
-                    return <span className={styles.diffCorrected}>{section.value}</span>
-                } else if (!section.removed) {
-                    return section.value;
+                const sectionState = section[0];
+                const sectionValue = section[1];
+                if (sectionState===DIFF_INSERT) {
+                    return <span className={styles.diffCorrected}>{sectionValue}</span>
+                } else if (sectionState!==DIFF_DELETE) {
+                    return sectionValue;
                 }
             })}</p>
         </div>

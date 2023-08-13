@@ -7,7 +7,7 @@
     "disclaimer": "yarn licenses generate-disclaimer > public/licenses-disclaimer.txt"
   },
   "dependencies": {
-    "diff": "^5.1.0",
+    "jest-diff": "^29.6.2",
     "js-yaml": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
