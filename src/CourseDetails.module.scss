@@ -2,8 +2,11 @@
     margin: 1rem;
 }
 
-.buttonBack {
+.buttonBack, .buttonTrain {
     margin-top: 1rem;
+}
+.buttonTrain {
+    float: right;
 }
 .lessons, .categories, .dynamicCategories {
     display: flex;

@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useContext } from 'react';
 import { pickRandom, Course, Translation, getVoices, speak } from './util.js';
 import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
 import styles from './LessonOngoing.module.scss';
 import {diffStringsRaw, DIFF_EQUAL, DIFF_DELETE, DIFF_INSERT} from 'jest-diff';
+import { AudioExercisesEnabledContext } from './contexts.js';
 
 export interface LessonOngoingProps {
     course: Course;
@@ -26,9 +27,10 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         () => getVoices(course.to),
         [course]
     );
+    const audioExercisesEnabled = useContext(AudioExercisesEnabledContext);
     const speakAnswerAsQuestionMode = useMemo(
-        () => voices.length > 0 && Math.random() < 0.3,
-        [voices, currentExercise]
+        () => audioExercisesEnabled && voices.length > 0 && Math.random() < 0.3,
+        [voices, currentExercise, audioExercisesEnabled]
     );
     const question = useMemo(
         () => speakAnswerAsQuestionMode ? currentExercise : pickRandom(
@@ -68,8 +70,8 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         [currentExercise, course, question, speakAnswerAsQuestionMode]
     );
     const acousticPick = useMemo(
-        () => !speakAnswerAsQuestionMode && voices.length > 0 && Math.random() < 0.5,
-        [voices, speakAnswerAsQuestionMode]
+        () => audioExercisesEnabled && !speakAnswerAsQuestionMode && voices.length > 0 && Math.random() < 0.5,
+        [voices, speakAnswerAsQuestionMode, audioExercisesEnabled]
     );
     
     const typeAnswerMode = useMemo(
@@ -87,6 +89,11 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         }
     };
     const confirm = (answerText: string) => {
+        // Ignore accidental confirmations.
+        if (answerText === '') {
+            return;
+        }
+        
         setCurrentAnswer(answerText);
         if (correctAnswerHintVisible) {
             showNextExcercise();

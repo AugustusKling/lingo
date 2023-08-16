@@ -183,6 +183,7 @@ courseIndex[`${fromLanguage} to ${toLanguage}`] = {
     from: fromLanguage,
     to: toLanguage,
     lessons: course.lessons.length,
-    exercises: course.sentences[toLanguage].length
+    exercises: course.sentences[toLanguage].length,
+    buildTime: new Date().toISOString()
 };
 fs.writeFileSync(courseIndexFile, JSON.stringify(courseIndex));

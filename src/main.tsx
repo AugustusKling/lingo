@@ -5,6 +5,7 @@ import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
 import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, byStatus, Knowledge } from './util.js';
 import { CourseList} from './CourseList.js';
+import { AudioExercisesEnabledContext } from './contexts.js';
 
 function App() {
     const [loading, setLoading] = useState(true);
@@ -66,6 +67,10 @@ function App() {
     const [stateActiveCourse, setStateActiveCourse] = useState<string | null>(null);
     const [activeCourseData, setActiveCourseData] = useState<Course | null>(null);
     const [ongoingLessionExercises, setOngoingLessionExercises] = useState<string[]>([]);
+    
+    const [audioExercisesEnabled, setAudioExercisesEnabled] = useLocalStorageState('audioExercisesEnabled', {
+        defaultValue: true
+    });
     
     useEffect(() => {
         if (hash !== '' && activeCourseData===null) {
@@ -179,7 +184,9 @@ function App() {
     } else if((hash==='lesson' || hash==='definition') && activeCourseData) {
         return <LessonOngoing course={activeCourseData} exercises={ongoingLessionExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={showActiveCourseDetails} />
     } else {
-        return <CourseList courseIndex={ courseIndex } knowledge={knowledge} onCourseSelected={onCourseSelected} />;
+        return <AudioExercisesEnabledContext.Provider value={audioExercisesEnabled}>
+            <CourseList courseIndex={ courseIndex } knowledge={knowledge} onCourseSelected={onCourseSelected} setAudioExercisesEnabled={setAudioExercisesEnabled} />
+        </AudioExercisesEnabledContext.Provider>;
     }
 }
 

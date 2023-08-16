@@ -49,6 +49,7 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
         <h1 className="title">{languagesInEnglish.of(course.to)}</h1>
         <Progress progress={progress} />
         <button className={styles.buttonBack} onClick={ () => onBackToCourseList?.() }>Back to course list</button>
+        <button className={styles.buttonTrain} onClick={ () => showDynamicLesson(course.to, course.sentences[course.to].map(sentence => sentence.id)) }>Train</button>
         <h2>Lessons</h2>
         <div className={styles.lessons}>{ renderLessonTiles() }</div>
         <h2>Dynamic</h2>

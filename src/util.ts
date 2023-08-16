@@ -61,7 +61,9 @@ function findWrongAnswer(exercise: Translation, course: Course, answerLanguage: 
         const lessons = course.lessons.filter(lesson => lesson.exercises.some(eId => correctAnswers.some(cLink => cLink.includes(eId))));
         const lessonsSentenceIds = lessons.flatMap(lesson => lesson.exercises);
         const othersInLessons = others.filter(o => lessonsSentenceIds.includes(o.id));
-        return pickRandom(othersInLessons);
+        if (othersInLessons.length > 0) {
+            return pickRandom(othersInLessons);
+        }
     }
     if(Math.random() > 0.5) {
         const othersSimilar = others.filter(o => {
