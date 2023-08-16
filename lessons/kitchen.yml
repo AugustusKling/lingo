@@ -1,11 +1,11 @@
 order: 5
 title:
- en: "Kitchen"
- de: "Küche"
- sv: Kök
+ eng: "Kitchen"
+ deu: "Küche"
+ swe: Kök
 description:
- en: "Cooking and ingredients"
- de: Kochen und Zutaten
+ eng: "Cooking and ingredients"
+ deu: Kochen und Zutaten
 
 exercises:
   - tatoeba/310737
@@ -37,3 +37,9 @@ exercises:
   - tatoeba/10087935
   - tatoeba/11202996
   - tatoeba/3825950
+exerciseTags:
+  - Küche
+  - kitchen
+  - food
+  - fruit
+  - cooking

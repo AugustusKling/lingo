@@ -1,4 +1,4 @@
-import { speak, Exercise, Translation } from './util.js';
+import { getVoices, speak, Translation, Course } from './util.js';
 import styles from './DefinitionOverlay.module.scss';
 
 const licenseNames: Partial<Record<string, string>> = {
@@ -7,20 +7,24 @@ const licenseNames: Partial<Record<string, string>> = {
 };
 
 interface DefinitionOverlayProps {
-    exercise: Exercise;
-    title: string;
-    from: string;
-    to: string;
+    exercise: Translation;
+    course: Course;
     onBackToExercise?: () => void;
 }
 
-export function DefinitionOverlay({exercise, title, from, to, onBackToExercise}: DefinitionOverlayProps) {
-    const renderTranslations = (lang: string) => {
-        const voices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(lang));
+export function DefinitionOverlay({exercise, course, onBackToExercise}: DefinitionOverlayProps) {
+    const sentenceIdSourceLanguage = course.sentences[course.from].some(s => s === exercise);
+    const translationIds = course.links.filter(link => link.includes(exercise.id)).flatMap(link => link).filter(id => id !== exercise.id);
+    const translations = (sentenceIdSourceLanguage ? course.sentences[course.to] : course.sentences[course.from])
+        .filter(translation => translationIds.includes(translation.id));
+    
+    const renderTranslations = () => {
+        const lang = sentenceIdSourceLanguage ? course.to : course.from;
+        const voices = getVoices(lang);
         const hasVoices = voices.length > 0;
 
-        return [<h2 key={lang+'-header'}>Translations: {lang}</h2>, ...exercise.translations[lang].map((translation, index) =>
-            <div key={lang + '-' + index}>
+        return [<h2 key={lang+'-header'}>Translations</h2>, ...translations.map(translation =>
+            <div key={translation.id}>
                 <div className={styles.translation}>
                     <h3>{translation.text}</h3>
                     { hasVoices && <button onClick={() => speak(translation.text, voices)}>Speak</button> }
@@ -31,14 +35,14 @@ export function DefinitionOverlay({exercise, title, from, to, onBackToExercise}:
         )];
     }
 
-    const hint = exercise.descriptions?.[from];
     return <div className={styles.definitionOverlay} style={{display:'flex'}}>
         <button className={styles.buttonBack} onClick={() => onBackToExercise?.()}>Back to exercise</button>
-        <h1 className={styles.title}>{title}</h1>
-        { hint && <p className={styles.hint}>{hint}</p> }
+        <h1 className={styles.title}>{exercise.text}</h1>
+        <Source translation={exercise} />
+        <Licence translation={exercise} />
+        
         <div className={styles.translations}>
-            {renderTranslations(from)}
-            {renderTranslations(to)}
+            {renderTranslations()}
         </div>
     </div>;
 }
@@ -50,7 +54,7 @@ function Source({translation}: SourceProps) {
     const sourceHtml = document.createElement('a');
     sourceHtml.href = translation.source;
     
-    return <a href={translation.source}>
+    return <a href={translation.source} className={styles.weblink}>
         { translation.author && `${translation.author}, ` }
         {sourceHtml.hostname}
     </a>;
@@ -60,7 +64,7 @@ interface LicenceProps {
     translation: Translation & { licence: string; };
 }
 function Licence({translation}: LicenceProps) {
-    return <a href={translation.licence}>
+    return <a href={translation.licence} className={styles.weblink}>
         Licence: {licenseNames[translation.licence] || translation.licence}
     </a>;
 }

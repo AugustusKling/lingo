@@ -1,15 +1,15 @@
 import { useState, useMemo, MouseEvent } from 'react';
-import { pickRandom, findWrongAnswers, speak, Course, Exercise, Translation } from './util.js';
+import { pickRandom, findWrongAnswers, speak, Course, Translation } from './util.js';
 import styles from './AnswerPick.module.scss';
 
 interface AnswerPickProps {
     course: Course;
-    currentExercise: Exercise;
+    currentExercise: Translation;
     correctAnswer: Translation;
     currentAnswer: string;
     onSelect: (answer: string) => void;
     onConfirm: (answer: string) => void;
-    onShowDefinition: (exercise: Exercise, title: string) => void;
+    onShowDefinition: (exercise: Translation) => void;
     voices: SpeechSynthesisVoice[];
     acousticPick: boolean;
     hint: string;
@@ -17,14 +17,14 @@ interface AnswerPickProps {
 
 export function AnswerPick({course, currentExercise, correctAnswer, currentAnswer, onSelect, onConfirm, onShowDefinition, voices, acousticPick, hint}: AnswerPickProps) {
     const wrongAnswers = useMemo(
-        () => findWrongAnswers(currentExercise, 2, course.exercerciseList, course.to),
+        () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
     );
     const answerOptions = useMemo(
         () => {
             const answerOptions = [
                 correctAnswer,
-                ...wrongAnswers.map(wrongAnswer => pickRandom(wrongAnswer.translations[course.to]))
+                ...wrongAnswers
             ];
             answerOptions.sort(() => Math.random() - 0.5);
             return answerOptions;
@@ -39,8 +39,7 @@ export function AnswerPick({course, currentExercise, correctAnswer, currentAnswe
     const showDefinition = (answerOption: Translation, e: MouseEvent) => {
         e.stopPropagation();
         
-        const exerciseForOption = wrongAnswers.find(wrongAnswer => Object.values(wrongAnswer.translations[course.to]).some(t => t === answerOption)) || currentExercise;
-        onShowDefinition(exerciseForOption, answerOption.text);
+        onShowDefinition(answerOption);
     };
     
     const renderAnswerOptions = () => {

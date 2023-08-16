@@ -16,9 +16,6 @@
 .definitionOverlay .title {
     margin-bottom: 0;
 }
-.definitionOverlay .hint {
-    margin: 0.5rem 0
-}
 .definitionOverlay h2 {
     margin: 1rem 0 0.5rem;
     font-size: 1.2rem;
@@ -32,7 +29,7 @@
     margin: 0.5rem 0;
     background: white;
 }
-.definitionOverlay .translations a {
+.definitionOverlay .weblink {
     font-size: 0.8rem;
     display: block;
     text-decoration: none;
@@ -50,7 +47,7 @@
     .definitionOverlay .translation {
         background: inherit;
     }
-    .definitionOverlay .translations a {
+    .definitionOverlay .weblink {
         color: steelblue;
     }
 }

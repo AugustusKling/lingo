@@ -1,7 +1,7 @@
 title:
- en: Questions
- de: Fragen
- sv: Frågor
+ eng: Questions
+ deu: Fragen
+ swe: Frågor
 
 exercises:
  # When
@@ -59,3 +59,5 @@ exercises:
  - tatoeba/5006717
  - tatoeba/8966690
  - tatoeba/9990202
+exerciseTags:
+ - question

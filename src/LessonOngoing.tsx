@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { pickRandom, Course, Exercise, speak } from './util.js';
+import { pickRandom, Course, Translation, getVoices, speak } from './util.js';
 import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
@@ -8,9 +8,9 @@ import {diffStringsRaw, DIFF_EQUAL, DIFF_DELETE, DIFF_INSERT} from 'jest-diff';
 
 export interface LessonOngoingProps {
     course: Course;
-    exercises: Exercise[];
+    exercises: string[];
     onLessonDone?: () => void;
-    onExerciseConfirmed: (_: {course: Course, exercise: Exercise, answerCorrect: boolean}) => void;
+    onExerciseConfirmed: (_: {course: Course, exercise: Translation, answerCorrect: boolean}) => void;
 }
 
 function doAnswersMatch(a: string, b: string): boolean {
@@ -20,10 +20,10 @@ function doAnswersMatch(a: string, b: string): boolean {
 
 export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfirmed}: LessonOngoingProps) {
     const [remainingExercises, setRemainingExercises] = useState(() => [...exercises]);
-    const currentExercise = remainingExercises[0];
-    const questionHint = currentExercise.descriptions?.[course.from];
+    const currentExercise = course.sentences[course.to].find(sentence => sentence.id === remainingExercises[0]);
+    const questionHint = '';
     const voices = useMemo(
-        () => speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(course.to)),
+        () => getVoices(course.to),
         [course]
     );
     const speakAnswerAsQuestionMode = useMemo(
@@ -31,17 +31,20 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         [voices, currentExercise]
     );
     const question = useMemo(
-        () => pickRandom(currentExercise.translations[speakAnswerAsQuestionMode ? course.to : course.from]),
+        () => speakAnswerAsQuestionMode ? currentExercise : pickRandom(
+            course.links.filter(([fromId, toId]) => toId === currentExercise.id)
+                .map(([fromId, toId]) => course.sentences[course.from].find(sentence => sentence.id === fromId))
+        ),
         [currentExercise, course, speakAnswerAsQuestionMode]
     );
     const [currentAnswer, setCurrentAnswer] = useState('');
     const [correctAnswerHintVisible, setCorrectAnswerHintVisible] = useState(false);
     
-    type DefinitionOverlayData = {visible: false; exercise: null; title: null;} | {visible: true; exercise: Exercise; title: string;};
+    type DefinitionOverlayData = {visible: false; exercise: null; course: null;} | {visible: true; exercise: Translation; course: Course;};
     const [definitionOverlayData, setDefinitionOverlayData] = useState<DefinitionOverlayData>({
         visible: false,
         exercise: null,
-        title: null
+        course: null
     });
     useEffect(() => {
         const updateOverlayVisibility = () => {
@@ -49,7 +52,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
                 setDefinitionOverlayData({
                     visible: false,
                     exercise: null,
-                    title: null
+                    course: null
                 });
             }
         };
@@ -58,7 +61,10 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     }, []);
     
     const correctAnswer = useMemo(
-        () => speakAnswerAsQuestionMode ? question : pickRandom(currentExercise.translations[course.to]),
+        () => speakAnswerAsQuestionMode ? question : pickRandom(
+            course.links.filter(([fromId, toId]) => toId === currentExercise.id)
+                .map(([fromId, toId]) => course.sentences[course.to].find(sentence => sentence.id === toId))
+        ),
         [currentExercise, course, question, speakAnswerAsQuestionMode]
     );
     const acousticPick = useMemo(
@@ -77,7 +83,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
             onLessonDone?.();
         } else {
             setCurrentAnswer('');
-            setRemainingExercises(remainingExercises.filter(e => e!==currentExercise));
+            setRemainingExercises(remainingExercises.filter(e => e!==currentExercise.id));
         }
     };
     const confirm = (answerText: string) => {
@@ -85,7 +91,9 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         if (correctAnswerHintVisible) {
             showNextExcercise();
         } else {
-            const answerCorrect = currentExercise.translations[course.to].some(correctOption => doAnswersMatch(correctOption.text, answerText));
+            const acceptedAnswers = speakAnswerAsQuestionMode ? [currentExercise] : course.links.filter(([fromId, toId]) => toId === currentExercise.id)
+                .map(([fromId, toId]) => course.sentences[course.to].find(sentence => sentence.id === toId));
+            const answerCorrect = acceptedAnswers.some(correctOption => doAnswersMatch(correctOption.text, answerText));
             onExerciseConfirmed({
                 course,
                 exercise: currentExercise,
@@ -100,10 +108,10 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         }
     };
     
-    const showDefinitionOverlay = (exercise: Exercise, title: string) => {
+    const showDefinitionOverlay = (exercise: Translation) => {
         setDefinitionOverlayData({
             exercise,
-            title,
+            course,
             visible: true
         });
         location.hash = '#definition';
@@ -126,24 +134,23 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     
     const renderWrongAndCorrectAnswer = () => {
         const diff = diffStringsRaw(currentAnswer, correctAnswer.text, true);
-        console.log(diff);
         return <div className={styles.correctAnswerHint} style={ {display: correctAnswerHintVisible ? 'block' : 'none'} }>
             <p>Your answer</p>
-            <p className={styles.wrongAnswer}>{diff.map(section => {
+            <p className={styles.wrongAnswer}>{diff.map((section, index) => {
                 const sectionState = section[0];
                 const sectionValue = section[1];
                 if (sectionState===DIFF_DELETE) {
-                    return <span className={styles.diffWrong}>{sectionValue}</span>
+                    return <span className={styles.diffWrong} key={index}>{sectionValue}</span>
                 } else if (sectionState!==DIFF_INSERT) {
                     return sectionValue;
                 }
             })}</p>
             <p>Correct answer</p>
-            <p className={styles.correctAnswer}>{diff.map(section => {
+            <p className={styles.correctAnswer}>{diff.map((section, index) => {
                 const sectionState = section[0];
                 const sectionValue = section[1];
                 if (sectionState===DIFF_INSERT) {
-                    return <span className={styles.diffCorrected}>{sectionValue}</span>
+                    return <span className={styles.diffCorrected} key={index}>{sectionValue}</span>
                 } else if (sectionState!==DIFF_DELETE) {
                     return sectionValue;
                 }
@@ -154,7 +161,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     const renderReadQuestion = () => {
         return <>
             <button onClick={() => speak(question.text, voices) }>Speak sentence to match</button>
-            <button onClick={() => showDefinitionOverlay(currentExercise, question.text)}>Info</button>
+            <button onClick={() => showDefinitionOverlay(question)}>Info</button>
         </>;
     };
     
@@ -162,7 +169,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         return <>
             <div className={styles.question}>{question.text}</div>
             <div className={styles.questionHint}>{questionHint}</div>
-            <button className={styles.buttonDefinition} onClick={() => showDefinitionOverlay(currentExercise, question.text)}>Info</button>
+            <button className={styles.buttonDefinition} onClick={() => showDefinitionOverlay(question)}>Info</button>
         </>;
     };
     
@@ -176,5 +183,5 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
             <button onClick={() => confirm(currentAnswer)}>Confirm</button>
         </div>
     </div>
-    {definitionOverlayData.visible && <DefinitionOverlay exercise={definitionOverlayData.exercise} title={definitionOverlayData.title} from={course.from} to={course.to} onBackToExercise={() => closeDefinitionOverlay()} />}</>;
+    {definitionOverlayData.visible && <DefinitionOverlay exercise={definitionOverlayData.exercise} course={course} onBackToExercise={() => closeDefinitionOverlay()} />}</>;
 }

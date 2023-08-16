@@ -3,14 +3,17 @@ interface ExerciseKnowledge {
     hiddenUntil: number;
 }
 export type ExerciseStatus = 'unseen' | 'learned' | 'wrong' | 'somewhat';
-type LangKnowledge = Record<Exercise['conceptName'], ExerciseKnowledge>;
+type LangKnowledge = Record<string, ExerciseKnowledge>;
 export type Knowledge = Record<string, LangKnowledge>;
 
 export interface Course {
     from: string;
     to: string;
     lessons: Lesson[];
-    exercerciseList: Exercise[];
+    /** lang to sentences */
+    sentences: Record<string, Translation[]>;
+    /** Sentence id (from lang) to sentence ids (to lang) */
+    links: [string, string][];
 }
 export interface Lesson {
     title: Record<string, string>;
@@ -18,13 +21,8 @@ export interface Lesson {
     order?: number;
     exercises: string[];
 }
-export interface Exercise {
-    conceptName: string;
-    descriptions: Record<string, string>;
-    categories: string[];
-    translations: Record<string, Translation[]>;
-}
 export interface Translation {
+    id: string;
     text: string;
     source?: string;
     licence?: string;
@@ -56,17 +54,18 @@ function group<X, Key extends string>(array: X[], mapper: (x: X) => Key): Partia
     return result;
 }
 
-function findWrongAnswer(exercise: Exercise, exercerciseListOfCourse: Course["exercerciseList"], answerLanguage: string, except: Exercise[]): Exercise {
-    const others = exercerciseListOfCourse.filter(o => o !== exercise && !except.includes(o));
-    if(Math.random() > 0.5) {
-        const othersSimilar = others.filter(o => o.categories.some(c => exercise.categories.includes(c)));
-        if (othersSimilar.length > 0) {
-            return pickRandom(othersSimilar);
-        }
+function findWrongAnswer(exercise: Translation, course: Course, answerLanguage: string, except: Translation[]): Translation {
+    const correctAnswers = course.links.filter(link => link.includes(exercise.id));
+    const others = course.sentences[answerLanguage].filter(o => !correctAnswers.some(cLink => cLink.includes(o.id)) && !except.includes(o));
+    if(Math.random() > 0.5 && answerLanguage === course.to) {
+        const lessons = course.lessons.filter(lesson => lesson.exercises.some(eId => correctAnswers.some(cLink => cLink.includes(eId))));
+        const lessonsSentenceIds = lessons.flatMap(lesson => lesson.exercises);
+        const othersInLessons = others.filter(o => lessonsSentenceIds.includes(o.id));
+        return pickRandom(othersInLessons);
     }
     if(Math.random() > 0.5) {
         const othersSimilar = others.filter(o => {
-            const lengthRatio = o.translations[answerLanguage][0].text.length / exercise.translations[answerLanguage][0].text.length;
+            const lengthRatio = o.text.length / exercise.text.length;
             return lengthRatio > 0.5 && lengthRatio < 1.5;
         });
         if (othersSimilar.length > 0) {
@@ -75,12 +74,17 @@ function findWrongAnswer(exercise: Exercise, exercerciseListOfCourse: Course["ex
     }
     return pickRandom(others);
 }
-export function findWrongAnswers(exercise: Exercise, amount: number, exercerciseListOfCourse: Course["exercerciseList"], answerLanguage: string): Exercise[] {
-    const wrong: Exercise[] = [];
+export function findWrongAnswers(exercise: Translation, amount: number, course: Course, answerLanguage: string): Translation[] {
+    const wrong: Translation[] = [];
     while(wrong.length < amount) {
-        wrong.push(findWrongAnswer(exercise, exercerciseListOfCourse, answerLanguage, wrong));
+        wrong.push(findWrongAnswer(exercise, course, answerLanguage, wrong));
     }
     return wrong;
+}
+
+export function getVoices(language: string): SpeechSynthesisVoice[] {
+    const prefix = Intl.getCanonicalLocales(language)[0];
+    return speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(prefix));
 }
 
 export function speak(text: string, voices: SpeechSynthesisVoice[]): void {
@@ -92,11 +96,11 @@ export function speak(text: string, voices: SpeechSynthesisVoice[]): void {
     speechSynthesis.speak(utterance);
 }
 
-export function getProgressForCourse(knowledge: Knowledge, course: Course, courseMeta: CourseMeta) {
-    const exerciseNames = course.exercerciseList.map(exercise => exercise.conceptName);
-    return getProgressForExercises(knowledge, course.to, exerciseNames, courseMeta.exercises);
+export function getProgressForCourse(knowledge: Knowledge, course: Course) {
+    const exerciseNames = course.sentences[course.to].map(translation => translation.id);
+    return getProgressForExercises(knowledge, course.to, exerciseNames);
 }
-export function getProgressForExercises(knowledge: Knowledge, to: string, exerciseNames: string[], totalExercises: number) {
+export function getProgressForExercises(knowledge: Knowledge, to: string, exerciseNames: string[]) {
     const langKnowledge = knowledge[to] || {};
     const exerciseStatus = exerciseNames.map(exerciseName => statusForExerciseReact(langKnowledge, exerciseName));
     const statusWrong = exerciseStatus.filter(status => status === 'wrong').length;
@@ -106,7 +110,7 @@ export function getProgressForExercises(knowledge: Knowledge, to: string, exerci
         wrong: statusWrong,
         somewhat: statusSomewhat,
         learned: statusLearned,
-        unseen: totalExercises - statusWrong - statusSomewhat - statusLearned
+        unseen: exerciseNames.length - statusWrong - statusSomewhat - statusLearned
     };
 }
 export function statusForExerciseReact(langKnowledge: LangKnowledge, exerciseName: string): ExerciseStatus {
@@ -124,8 +128,8 @@ export function statusForExerciseReact(langKnowledge: LangKnowledge, exerciseNam
     return "somewhat";
 }
 
-export function byStatus(langKnowledge: LangKnowledge, exercises: Exercise[]): Record<ExerciseStatus, Exercise[]> {
-    const grouped = group(exercises, e => statusForExerciseReact(langKnowledge, e.conceptName));
+export function byStatus(langKnowledge: LangKnowledge, exercises: string[]): Record<ExerciseStatus, string[]> {
+    const grouped = group(exercises, e => statusForExerciseReact(langKnowledge, e));
     return Object.assign({
         unseen: [],
         wrong: [],

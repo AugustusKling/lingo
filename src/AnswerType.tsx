@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { pickRandom, findWrongAnswers, Course, Exercise, Translation } from './util.js';
+import { pickRandom, findWrongAnswers, Course, Translation } from './util.js';
 import styles from './AnswerType.module.scss';
 
 interface AnswerTypeProps {
     course: Course;
-    currentExercise: Exercise;
+    currentExercise: Translation;
     correctAnswer: Translation;
     currentAnswer: string;
     onChange: (answer: string) => void;
@@ -13,14 +13,14 @@ interface AnswerTypeProps {
 
 export function AnswerType({course, currentExercise, correctAnswer, currentAnswer, onChange, hint}: AnswerTypeProps) {
     const wrongAnswers = useMemo(
-        () => findWrongAnswers(currentExercise, 2, course.exercerciseList, course.to),
+        () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
     );
     const answerOptions = useMemo(
         () => {
             const answerOptions = [
                 correctAnswer,
-                ...wrongAnswers.map(wrongAnswer => pickRandom(wrongAnswer.translations[course.to]))
+                ...wrongAnswers
             ];
             answerOptions.sort(() => Math.random() - 0.5);
             return answerOptions;

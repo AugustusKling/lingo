@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import useLocalStorageState from 'use-local-storage-state'
 import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
-import { pickRandom, findWrongAnswers, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Exercise, byStatus, Knowledge } from './util.js';
+import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, byStatus, Knowledge } from './util.js';
 import { CourseList} from './CourseList.js';
 
 function App() {
@@ -65,7 +65,7 @@ function App() {
     });
     const [stateActiveCourse, setStateActiveCourse] = useState<string | null>(null);
     const [activeCourseData, setActiveCourseData] = useState<Course | null>(null);
-    const [ongoingLessionExercises, setOngoingLessionExercises] = useState<Exercise[]>([]);
+    const [ongoingLessionExercises, setOngoingLessionExercises] = useState<string[]>([]);
     
     useEffect(() => {
         if (hash !== '' && activeCourseData===null) {
@@ -83,6 +83,25 @@ function App() {
     
     const onCourseSelected = async (langPair:string) => {
         const course: Course = stateActiveCourse===langPair && activeCourseData ? activeCourseData : await (await fetch('dist-data/courses/'+encodeURI(langPair+'.json'))).json();
+        
+        // Migrate old knowledge state.
+        if (course.from === 'eng') {
+            const oldLanguage = Intl.getCanonicalLocales(course.to)[0];
+            if (knowledge[oldLanguage] && oldLanguage.length === 2) {
+                if (!knowledge[course.to]) {
+                    knowledge[course.to] = {};
+                }
+                const mapping = course.links.map(([fromId, toId]) => [`tatoeba/${fromId}`, toId]);
+                for(const [old, migrated] of mapping) {
+                    if (knowledge[oldLanguage][old] && !knowledge[course.to][migrated]) {
+                        knowledge[course.to][migrated] = knowledge[oldLanguage][old];
+                    }
+                }
+                delete knowledge[oldLanguage];
+                setKnowledge(knowledge)
+            }
+        }
+        
         setStateActiveCourse(langPair);
         setActiveCourseData(course);
         setHash('course');
@@ -91,14 +110,14 @@ function App() {
         setHash('');
     };
     const progressForExercises = (lang: string, exerciseNames: string[]) => {
-        return getProgressForExercises(knowledge, lang, exerciseNames, exerciseNames.length);
+        return getProgressForExercises(knowledge, lang, exerciseNames);
     }
     
-    const showDynamicLesson = (lang: string, exercisePicklist: Exercise[]) => {
+    const showDynamicLesson = (lang: string, exercisePicklist: string[]) => {
         const exercisesByStatus = byStatus(knowledge[lang] || {}, exercisePicklist);
         const amountToShow = Math.min(10, exercisePicklist.length);
         const picklistCopy = [...(exercisesByStatus.wrong || []), ...(exercisesByStatus.somewhat || [])];
-        const picked: Exercise[] = [];
+        const picked: string[] = [];
         while(picked.length < Math.min(amountToShow*0.7, picklistCopy.length)) {
             const pickedIndex = Math.floor(Math.random() * picklistCopy.length);
             picked.push(...picklistCopy.splice(pickedIndex, 1));
@@ -118,14 +137,14 @@ function App() {
     };
     
     const onExerciseConfirmed: LessonOngoingProps['onExerciseConfirmed'] = ({course, exercise, answerCorrect}) => {
-        const knowledgeExercise = knowledge[course.to]?.[exercise.conceptName] || {
+        const knowledgeExercise = knowledge[course.to]?.[exercise.id] || {
             lastAnswersCorrect: [],
             hiddenUntil: 0
         };
         if(!knowledge[course.to]) {
             knowledge[course.to] = {};
         }
-        knowledge[course.to][exercise.conceptName] = knowledgeExercise;
+        knowledge[course.to][exercise.id] = knowledgeExercise;
         if(knowledgeExercise.lastAnswersCorrect.length > 9) {
             knowledgeExercise.lastAnswersCorrect.splice(0, 1);
         }
@@ -155,8 +174,7 @@ function App() {
     if (loading) {
         return 'Loading…';
     } else if(hash==='course' && stateActiveCourse && activeCourseData) {
-        const courseMeta = courseIndex[stateActiveCourse];
-        const progress = getProgressForCourse(knowledge, activeCourseData, courseMeta);
+        const progress = getProgressForCourse(knowledge, activeCourseData);
         return <CourseDetails course={activeCourseData} progress={progress} onBackToCourseList={onBackToCourseList} getProgressForExercises={progressForExercises} statusForExercise={statusForExercise} showDynamicLesson={showDynamicLesson}/>
     } else if((hash==='lesson' || hash==='definition') && activeCourseData) {
         return <LessonOngoing course={activeCourseData} exercises={ongoingLessionExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={showActiveCourseDetails} />

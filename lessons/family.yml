@@ -1,7 +1,7 @@
 title:
- en: Family
- de: Familie
- sv: Familje
+ eng: Family
+ deu: Familie
+ swe: Familje
 
 exercises:
  # Sister
@@ -74,3 +74,5 @@ exercises:
  - tatoeba/1399925
  - tatoeba/6489640
  - tatoeba/10011085
+exerciseTags:
+ - relatives

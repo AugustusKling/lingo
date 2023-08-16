@@ -1,10 +1,10 @@
 order: 5
 title:
- en: "Common Pets"
- de: "Haustiere"
- sv: Husdjur
+ eng: "Common Pets"
+ deu: "Haustiere"
+ swe: Husdjur
 description:
- en: "Pet names"
+ eng: "Pet names"
 
 image: pet
 
@@ -57,3 +57,5 @@ exercises:
   - tatoeba/2258794
   - tatoeba/2401186
   - tatoeba/5116611
+exerciseTags:
+  - animals

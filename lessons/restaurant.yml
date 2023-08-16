@@ -1,11 +1,12 @@
 title:
- en: Restaurant
- de: Restaurant
- sv: Restaurang
+ eng: Restaurant
+ deu: Restaurant
+ swe: Restaurang
 
 description:
- en: Eating out.
- de: Auswärts essen.
+ eng: Eating out.
+ deu: Auswärts essen.
+ swe: Äta ute.
 
 order: 1
 
@@ -76,3 +77,5 @@ exercises:
  - tatoeba/707140
  - tatoeba/1708915
  - tatoeba/1886382
+exerciseTags:
+ - restaurant
