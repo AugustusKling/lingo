@@ -182,7 +182,9 @@ function App() {
         const progress = getProgressForCourse(knowledge, activeCourseData);
         return <CourseDetails course={activeCourseData} progress={progress} onBackToCourseList={onBackToCourseList} getProgressForExercises={progressForExercises} statusForExercise={statusForExercise} showDynamicLesson={showDynamicLesson}/>
     } else if((hash==='lesson' || hash==='definition') && activeCourseData) {
-        return <LessonOngoing course={activeCourseData} exercises={ongoingLessionExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={showActiveCourseDetails} />
+        return <AudioExercisesEnabledContext.Provider value={audioExercisesEnabled}>
+            <LessonOngoing course={activeCourseData} exercises={ongoingLessionExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={showActiveCourseDetails} />
+        </AudioExercisesEnabledContext.Provider>;
     } else {
         return <AudioExercisesEnabledContext.Provider value={audioExercisesEnabled}>
             <CourseList courseIndex={ courseIndex } knowledge={knowledge} onCourseSelected={onCourseSelected} setAudioExercisesEnabled={setAudioExercisesEnabled} />
