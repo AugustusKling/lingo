@@ -86,8 +86,35 @@ function App() {
         })();
     }, []);
     
+    const downloadCourseIfOutdated = async (langPair: string) => {
+        const cache = await caches.open('lingo');
+        const request = new Request('dist-data/courses/'+encodeURI(langPair+'.json'));
+        let cachedResponse = await cache.match(request);
+        if (cachedResponse) {
+            const downloadTime = Date.parse(cachedResponse.headers.get('x-date'));
+            // Use cached value unless outdated.
+            if (downloadTime > Date.parse(courseIndex[langPair].buildTime)) {
+                return cachedResponse.json();
+            }
+        }
+        
+        const freshResponse = await fetch(request);
+        if (!freshResponse.status === 200) {
+            return freshResponse;
+        }
+        await cache.put(request, new Response(await freshResponse.arrayBuffer(), {
+            status: freshResponse.status,
+            headers: {
+                'content-type': 'application/json',
+                'x-date': new Date().toISOString()
+            }
+        }));
+        const newlyCachedResponse = await cache.match(request);
+        return newlyCachedResponse.json();
+    };
+    
     const onCourseSelected = async (langPair:string) => {
-        const course: Course = stateActiveCourse===langPair && activeCourseData ? activeCourseData : await (await fetch('dist-data/courses/'+encodeURI(langPair+'.json'))).json();
+        const course: Course = stateActiveCourse===langPair && activeCourseData ? activeCourseData : await downloadCourseIfOutdated(langPair);
         
         // Migrate old knowledge state.
         if (course.from === 'eng') {
