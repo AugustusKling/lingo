@@ -5,74 +5,74 @@ title:
 
 exercises:
  # Sister
- - tatoeba/55609
- - tatoeba/63138
- - tatoeba/284774
- - tatoeba/310274
- - tatoeba/1803045
+ - 55609
+ - 63138
+ - 284774
+ - 310274
+ - 1803045
  # Brother
- - tatoeba/249765
- - tatoeba/249896
- - tatoeba/250680
- - tatoeba/250726
- - tatoeba/251525
- - tatoeba/757405
- - tatoeba/2319875
- - tatoeba/4016554
- - tatoeba/11155311
+ - 249765
+ - 249896
+ - 250680
+ - 250726
+ - 251525
+ - 757405
+ - 2319875
+ - 4016554
+ - 11155311
  # Mother
- - tatoeba/17404
- - tatoeba/70949
- - tatoeba/251813
- - tatoeba/423892
- - tatoeba/758900
+ - 17404
+ - 70949
+ - 251813
+ - 423892
+ - 758900
  # Father
- - tatoeba/251642
- - tatoeba/319092
- - tatoeba/319316
- - tatoeba/2544490
- - tatoeba/2648121
+ - 251642
+ - 319092
+ - 319316
+ - 2544490
+ - 2648121
  # Grandparents
- - tatoeba/22842
- - tatoeba/41950
- - tatoeba/65093
- - tatoeba/65095
- - tatoeba/65097
- - tatoeba/251341
- - tatoeba/11189593
- - tatoeba/9737974
- - tatoeba/53832
- - tatoeba/1809371
- - tatoeba/6008216
- - tatoeba/6008218
+ - 22842
+ - 41950
+ - 65093
+ - 65095
+ - 65097
+ - 251341
+ - 11189593
+ - 9737974
+ - 53832
+ - 1809371
+ - 6008216
+ - 6008218
  # Daughter
- - tatoeba/251968
- - tatoeba/453185
- - tatoeba/2109824
- - tatoeba/2145023
- - tatoeba/2762701
- - tatoeba/6324859
- - tatoeba/10506131
- - tatoeba/29575
- - tatoeba/1130841
- - tatoeba/5119638
- - tatoeba/5799490
+ - 251968
+ - 453185
+ - 2109824
+ - 2145023
+ - 2762701
+ - 6324859
+ - 10506131
+ - 29575
+ - 1130841
+ - 5119638
+ - 5799490
  # Son
- - tatoeba/53642
- - tatoeba/65534
- - tatoeba/274383
- - tatoeba/436251
- - tatoeba/1898101
- - tatoeba/2358822
- - tatoeba/3409192
- - tatoeba/5749939
+ - 53642
+ - 65534
+ - 274383
+ - 436251
+ - 1898101
+ - 2358822
+ - 3409192
+ - 5749939
  # Aunt
- - tatoeba/10601318
- - tatoeba/4751212
+ - 10601318
+ - 4751212
  # Uncle
- - tatoeba/17412
- - tatoeba/1399925
- - tatoeba/6489640
- - tatoeba/10011085
+ - 17412
+ - 1399925
+ - 6489640
+ - 10011085
 exerciseTags:
  - relatives

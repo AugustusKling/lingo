@@ -4,16 +4,5 @@ title:
  deu: "Farben"
  swe: "Färg"
 
-image: brushes
-
-exercises:
-  - red
-  - green
-  - white
-  - blue
-  - brown
-  - yellow
-  - purple
-  - black
 exerciseTags:
   - color

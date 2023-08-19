@@ -142,12 +142,11 @@ for(const {fromId, toId} of links) {
 console.log(`Building lessons`);
 for(const lesson of lessons) {
     const supportedExercises = new Set();
-    const exercises = lesson.exercises || [];
+    const exercises = (lesson.exercises || []).map(String);
     for (const exerciseTag of (lesson.exerciseTags || [])) {
         exercises.push(...tagsToSentenceIds[exerciseTag] || []);
     }
-    for(const exercise of exercises) {
-        const exerciseRef = exercise.replace('tatoeba/', '');
+    for(const exerciseRef of exercises) {
         const sentenceIds = [exerciseRef].concat(expansions[exerciseRef] || []);
         for (const sentenceId of sentenceIds) {
             if (addedSentences.has(sentenceId)) {

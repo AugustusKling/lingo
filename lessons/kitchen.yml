@@ -8,35 +8,35 @@ description:
  deu: Kochen und Zutaten
 
 exercises:
-  - tatoeba/310737
-  - tatoeba/10136126
-  - tatoeba/10207593
-  - tatoeba/1023754
-  - tatoeba/1908458
-  - tatoeba/2293029
-  - tatoeba/325237
-  - tatoeba/49844
-  - tatoeba/6335492
-  - tatoeba/267675
-  - tatoeba/5116931
-  - tatoeba/4153506
-  - tatoeba/5119619
-  - tatoeba/10468045
-  - tatoeba/10663108
-  - tatoeba/10924173
-  - tatoeba/3094922
-  - tatoeba/3312859
-  - tatoeba/10043379
-  - tatoeba/10276705
-  - tatoeba/310524
-  - tatoeba/3115524
-  - tatoeba/32225
-  - tatoeba/10685123
-  - tatoeba/7317764
-  - tatoeba/3777898
-  - tatoeba/10087935
-  - tatoeba/11202996
-  - tatoeba/3825950
+  - 310737
+  - 10136126
+  - 10207593
+  - 1023754
+  - 1908458
+  - 2293029
+  - 325237
+  - 49844
+  - 6335492
+  - 267675
+  - 5116931
+  - 4153506
+  - 5119619
+  - 10468045
+  - 10663108
+  - 10924173
+  - 3094922
+  - 3312859
+  - 10043379
+  - 10276705
+  - 310524
+  - 3115524
+  - 32225
+  - 10685123
+  - 7317764
+  - 3777898
+  - 10087935
+  - 11202996
+  - 3825950
 exerciseTags:
   - Küche
   - kitchen

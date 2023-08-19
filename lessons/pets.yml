@@ -6,56 +6,53 @@ title:
 description:
  eng: "Pet names"
 
-image: pet
-
 exercises:
-  - cat
-  - tatoeba/1396370
-  - tatoeba/1497521
-  - tatoeba/1028408
-  - tatoeba/10500365
-  - tatoeba/10663137
-  - tatoeba/11055117
-  - tatoeba/1127925
-  - tatoeba/240460
-  - tatoeba/10053284
-  - tatoeba/1201040
-  - tatoeba/1224114
-  - tatoeba/44554
-  - tatoeba/2721192
-  - tatoeba/7736255
-  - tatoeba/2031351
-  - tatoeba/28971
-  - tatoeba/3825843
+  - 1396370
+  - 1497521
+  - 1028408
+  - 10500365
+  - 10663137
+  - 11055117
+  - 1127925
+  - 240460
+  - 10053284
+  - 1201040
+  - 1224114
+  - 44554
+  - 2721192
+  - 7736255
+  - 2031351
+  - 28971
+  - 3825843
   # Cat
-  - tatoeba/765973
-  - tatoeba/6912232
+  - 765973
+  - 6912232
   # Fish
-  - tatoeba/19349
-  - tatoeba/2721192
-  - tatoeba/7736255
+  - 19349
+  - 2721192
+  - 7736255
   # Dog
-  - tatoeba/48281
-  - tatoeba/65934
-  - tatoeba/239115
-  - tatoeba/239185
-  - tatoeba/257244
-  - tatoeba/257235
-  - tatoeba/305753
-  - tatoeba/983943
-  - tatoeba/2261103
-  - tatoeba/2378860
-  - tatoeba/3003322
-  - tatoeba/4889807
-  - tatoeba/9250323
-  - tatoeba/11089505
+  - 48281
+  - 65934
+  - 239115
+  - 239185
+  - 257244
+  - 257235
+  - 305753
+  - 983943
+  - 2261103
+  - 2378860
+  - 3003322
+  - 4889807
+  - 9250323
+  - 11089505
   # Horse
-  - tatoeba/51692
-  - tatoeba/672887
-  - tatoeba/868994
-  - tatoeba/1331063
-  - tatoeba/2258794
-  - tatoeba/2401186
-  - tatoeba/5116611
+  - 51692
+  - 672887
+  - 868994
+  - 1331063
+  - 2258794
+  - 2401186
+  - 5116611
 exerciseTags:
   - animals

@@ -12,71 +12,71 @@ order: 1
 
 exercises:
  # Please get me…
- - tatoeba/64352
- - tatoeba/240980
- - tatoeba/325901
- - tatoeba/701897
+ - 64352
+ - 240980
+ - 325901
+ - 701897
  # Thanks
- - tatoeba/1564
- - tatoeba/2077
- - tatoeba/65115
- - tatoeba/374827
- - tatoeba/1885947
- - tatoeba/2107841
- - tatoeba/9611382
+ - 1564
+ - 2077
+ - 65115
+ - 374827
+ - 1885947
+ - 2107841
+ - 9611382
  # yes / no
- - tatoeba/477086
- - tatoeba/562905
- - tatoeba/687874
- - tatoeba/880481
- - tatoeba/3555089
- - tatoeba/10767050
- - tatoeba/6200499
- - tatoeba/5263526
- - tatoeba/4374137
- - tatoeba/2217696
- - tatoeba/2053899
- - tatoeba/477061
- - tatoeba/433613
- - tatoeba/413611
- - tatoeba/65830
- - tatoeba/1589
+ - 477086
+ - 562905
+ - 687874
+ - 880481
+ - 3555089
+ - 10767050
+ - 6200499
+ - 5263526
+ - 4374137
+ - 2217696
+ - 2053899
+ - 477061
+ - 433613
+ - 413611
+ - 65830
+ - 1589
  # goodby
- - tatoeba/647456
- - tatoeba/6714881
- - tatoeba/2566184
+ - 647456
+ - 6714881
+ - 2566184
  # understand
- - tatoeba/6704041
- - tatoeba/9305408
- - tatoeba/1955095
- - tatoeba/853190
- - tatoeba/376610
- - tatoeba/403046
+ - 6704041
+ - 9305408
+ - 1955095
+ - 853190
+ - 376610
+ - 403046
  # Toilets
- - tatoeba/38937
- - tatoeba/517394
- - tatoeba/11055987
+ - 38937
+ - 517394
+ - 11055987
  # Menu
- - tatoeba/880542
- - tatoeba/3647252
+ - 880542
+ - 3647252
  # Soup
- - tatoeba/664056
- - tatoeba/2011638
- - tatoeba/2214194
- - tatoeba/3428659
- - tatoeba/9482358
+ - 664056
+ - 2011638
+ - 2214194
+ - 3428659
+ - 9482358
  # Dessert
- - tatoeba/2744633
- - tatoeba/4311240
+ - 2744633
+ - 4311240
  # Paying the bill
- - tatoeba/321308
- - tatoeba/1029592
- - tatoeba/4502262
- - tatoeba/39370
- - tatoeba/61255
- - tatoeba/707140
- - tatoeba/1708915
- - tatoeba/1886382
+ - 321308
+ - 1029592
+ - 4502262
+ - 39370
+ - 61255
+ - 707140
+ - 1708915
+ - 1886382
 exerciseTags:
  - restaurant
  - at the table
