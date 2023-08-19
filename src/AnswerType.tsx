@@ -48,6 +48,9 @@ export function AnswerType({course, currentExercise, correctAnswer, currentAnswe
             onChange(currentAnswer + ' ' + wordSuggestion);
         }
     };
+    const removeLastWord = () => {
+        onChange(currentAnswer.replace(/\s*\S*$/, ''));
+    };
     const removeAnimation = (e) => {
         e.target.classList.remove(styles.clicked);
     }
@@ -56,7 +59,7 @@ export function AnswerType({course, currentExercise, correctAnswer, currentAnswe
         <p>{ hint }</p>
         <div className={styles.textInput}>
             { dummyTextareaVisible ? <div className={styles.textarea} onClick={() => setDummyTextareaVisible(false)}>&#8203;{currentAnswer}</div>
-            : <textarea type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} />}<button onClick={() => onChange('')}>Clear</button>
+            : <textarea type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} />}<button onClick={() => removeLastWord() }>Clear</button>
         </div>
         <div className={styles.wordSuggestions} onAnimationEnd={removeAnimation}>{
             wordSuggestions.map(suggestion => {

@@ -79,8 +79,15 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         [question]
     );
     
+    useEffect(() => {
+        if (speakAnswerAsQuestionMode) {
+            speak(question.text, voices);
+        }
+    }, [speakAnswerAsQuestionMode, question]);
+    
     const showNextExcercise = () => {
         setCorrectAnswerHintVisible(false);
+        speechSynthesis.cancel();
         if(remainingExercises.length === 1) {
             onLessonDone?.();
         } else {
