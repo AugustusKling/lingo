@@ -5,7 +5,6 @@ import styles from './AnswerPick.module.scss';
 interface AnswerPickProps {
     course: Course;
     currentExercise: Translation;
-    correctAnswer: Translation;
     currentAnswer: string;
     onSelect: (answer: string) => void;
     onConfirm: (answer: string) => void;
@@ -15,7 +14,7 @@ interface AnswerPickProps {
     hint: string;
 }
 
-export function AnswerPick({course, currentExercise, correctAnswer, currentAnswer, onSelect, onConfirm, onShowDefinition, voices, acousticPick, hint}: AnswerPickProps) {
+export function AnswerPick({course, currentExercise, currentAnswer, onSelect, onConfirm, onShowDefinition, voices, acousticPick, hint}: AnswerPickProps) {
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
@@ -23,13 +22,13 @@ export function AnswerPick({course, currentExercise, correctAnswer, currentAnswe
     const answerOptions = useMemo(
         () => {
             const answerOptions = [
-                correctAnswer,
+                currentExercise,
                 ...wrongAnswers
             ];
             answerOptions.sort(() => Math.random() - 0.5);
             return answerOptions;
         },
-        [course, currentExercise, correctAnswer, wrongAnswers]
+        [course, currentExercise, wrongAnswers]
     );
     
     const speakAndSelect = (answerOption: Translation) => {

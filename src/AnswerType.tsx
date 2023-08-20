@@ -5,13 +5,12 @@ import styles from './AnswerType.module.scss';
 interface AnswerTypeProps {
     course: Course;
     currentExercise: Translation;
-    correctAnswer: Translation;
     currentAnswer: string;
     onChange: (answer: string) => void;
     hint: string;
 }
 
-export function AnswerType({course, currentExercise, correctAnswer, currentAnswer, onChange, hint}: AnswerTypeProps) {
+export function AnswerType({course, currentExercise, currentAnswer, onChange, hint}: AnswerTypeProps) {
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
@@ -19,13 +18,13 @@ export function AnswerType({course, currentExercise, correctAnswer, currentAnswe
     const answerOptions = useMemo(
         () => {
             const answerOptions = [
-                correctAnswer,
+                currentExercise,
                 ...wrongAnswers
             ];
             answerOptions.sort(() => Math.random() - 0.5);
             return answerOptions;
         },
-        [course, currentExercise, correctAnswer, wrongAnswers]
+        [course, currentExercise, wrongAnswers]
     );
     
     const wordSuggestions = useMemo(

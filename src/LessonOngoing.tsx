@@ -62,13 +62,6 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         return () => removeEventListener('hashchange', updateOverlayVisibility);
     }, []);
     
-    const correctAnswer = useMemo(
-        () => speakAnswerAsQuestionMode ? question : pickRandom(
-            course.links.filter(([fromId, toId]) => toId === currentExercise.id)
-                .map(([fromId, toId]) => course.sentences[course.to].find(sentence => sentence.id === toId))
-        ),
-        [currentExercise, course, question, speakAnswerAsQuestionMode]
-    );
     const acousticPick = useMemo(
         () => audioExercisesEnabled && !speakAnswerAsQuestionMode && voices.length > 0 && Math.random() < 0.5,
         [voices, speakAnswerAsQuestionMode, audioExercisesEnabled]
@@ -105,7 +98,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         if (correctAnswerHintVisible) {
             showNextExcercise();
         } else {
-            const acceptedAnswers = speakAnswerAsQuestionMode ? [currentExercise] : course.links.filter(([fromId, toId]) => toId === currentExercise.id)
+            const acceptedAnswers = speakAnswerAsQuestionMode ? [currentExercise] : course.links.filter(([fromId, toId]) => fromId === question.id)
                 .map(([fromId, toId]) => course.sentences[course.to].find(sentence => sentence.id === toId));
             const answerCorrect = acceptedAnswers.some(correctOption => doAnswersMatch(correctOption.text, answerText));
             onExerciseConfirmed({
@@ -136,18 +129,18 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     
     const renderAnswerMeans = () => {
         if (typeAnswerMode) {
-            return <AnswerType course={course} currentExercise={currentExercise} correctAnswer={correctAnswer} currentAnswer={currentAnswer} onChange={setCurrentAnswer} hint={
+            return <AnswerType course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onChange={setCurrentAnswer} hint={
                 speakAnswerAsQuestionMode ? 'Type what you heard' : 'Type translation'
             } />;
         } else {
-            return <AnswerPick course={course} currentExercise={currentExercise} correctAnswer={correctAnswer} currentAnswer={currentAnswer} onSelect={setCurrentAnswer} onConfirm={confirm} onShowDefinition={showDefinitionOverlay} voices={voices} acousticPick={acousticPick} hint={
+            return <AnswerPick course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onSelect={setCurrentAnswer} onConfirm={confirm} onShowDefinition={showDefinitionOverlay} voices={voices} acousticPick={acousticPick} hint={
                 speakAnswerAsQuestionMode ? 'Pick what you heard' : 'Pick correct translation'
             } />;
         }
     }
     
     const renderWrongAndCorrectAnswer = () => {
-        const diff = diffStringsRaw(currentAnswer, correctAnswer.text, true);
+        const diff = diffStringsRaw(currentAnswer, currentExercise.text, true);
         return <div className={styles.correctAnswerHint} style={ {display: correctAnswerHintVisible ? 'block' : 'none'} }>
             <p>Your answer</p>
             <p className={styles.wrongAnswer}>{diff.map((section, index) => {
