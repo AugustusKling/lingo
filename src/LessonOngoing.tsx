@@ -5,7 +5,7 @@ import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
 import styles from './LessonOngoing.module.scss';
 import {diffStringsRaw, DIFF_EQUAL, DIFF_DELETE, DIFF_INSERT} from 'jest-diff';
-import { AudioExercisesEnabledContext } from './contexts.js';
+import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 
 export interface LessonOngoingProps {
     course: Course;
@@ -39,8 +39,18 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         ),
         [currentExercise, course, speakAnswerAsQuestionMode]
     );
+    const acceptedAnswers = useMemo(() => {
+        if (speakAnswerAsQuestionMode) {
+            return [currentExercise];
+        } else {
+            return course.links.filter(([fromId, toId]) => fromId === question.id)
+                .map(([fromId, toId]) => course.sentences[course.to].find(sentence => sentence.id === toId));
+        }
+    }, [speakAnswerAsQuestionMode, currentExercise]);
     const [currentAnswer, setCurrentAnswer] = useState('');
     const [correctAnswerHintVisible, setCorrectAnswerHintVisible] = useState(false);
+    const correctAnswerConfirmationsEnabled = useContext(CorrectAnswerConfirmationsEnabledContext);
+    const [correctAnswerConfirmationVisible, setCorrectAnswerConfirmationVisible] = useState(false);
     
     type DefinitionOverlayData = {visible: false; exercise: null; course: null;} | {visible: true; exercise: Translation; course: Course;};
     const [definitionOverlayData, setDefinitionOverlayData] = useState<DefinitionOverlayData>({
@@ -80,6 +90,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     
     const showNextExcercise = () => {
         setCorrectAnswerHintVisible(false);
+        setCorrectAnswerConfirmationVisible(false);
         speechSynthesis.cancel();
         if(remainingExercises.length === 1) {
             onLessonDone?.();
@@ -95,11 +106,9 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         }
         
         setCurrentAnswer(answerText);
-        if (correctAnswerHintVisible) {
+        if (correctAnswerHintVisible || correctAnswerConfirmationVisible) {
             showNextExcercise();
         } else {
-            const acceptedAnswers = speakAnswerAsQuestionMode ? [currentExercise] : course.links.filter(([fromId, toId]) => fromId === question.id)
-                .map(([fromId, toId]) => course.sentences[course.to].find(sentence => sentence.id === toId));
             const answerCorrect = acceptedAnswers.some(correctOption => doAnswersMatch(correctOption.text, answerText));
             onExerciseConfirmed({
                 course,
@@ -107,10 +116,12 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
                 answerCorrect
             });
             
-            if (answerCorrect) {
-                showNextExcercise();
-            } else {
+            if (!answerCorrect) {
                 setCorrectAnswerHintVisible(true);
+            } else if (correctAnswerConfirmationsEnabled) {
+                setCorrectAnswerConfirmationVisible(true);
+            } else {
+                showNextExcercise();
             }
         }
     };
@@ -141,8 +152,8 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     
     const renderWrongAndCorrectAnswer = () => {
         const diff = diffStringsRaw(currentAnswer, currentExercise.text, true);
-        return <div className={styles.correctAnswerHint} style={ {display: correctAnswerHintVisible ? 'block' : 'none'} }>
-            <p>Your answer</p>
+        return <div className={styles.correctAnswerHint}>
+            <p>You answered wrongly</p>
             <p className={styles.wrongAnswer}>{diff.map((section, index) => {
                 const sectionState = section[0];
                 const sectionValue = section[1];
@@ -163,7 +174,20 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
                 }
             })}</p>
         </div>
-    }
+    };
+    
+    const renderCorrectAnswerConfirmation = () => {
+        const correctAnswer = acceptedAnswers.find(correctOption => doAnswersMatch(correctOption.text, currentAnswer));
+        const alsoCorrectAnswers = acceptedAnswers.filter(sentence => sentence.id !== correctAnswer.id);
+        return <div className={styles.correctAnswerConfirmation}>
+            <h2>You answered correctly</h2>
+            <p>{ correctAnswer.text }</p>
+            { alsoCorrectAnswers.length === 0 ? <></> : <>
+                <h2>Also correct</h2>
+                { alsoCorrectAnswers.map(sentence => <p key={sentence.id}>{sentence.text}</p>) }
+            </> }
+        </div>
+    };
     
     const renderReadQuestion = () => {
         return <>
@@ -180,10 +204,19 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         </>;
     };
     
+    const renderMain = () => {
+        if (correctAnswerHintVisible) {
+            return renderWrongAndCorrectAnswer();
+        } else if (correctAnswerConfirmationVisible) {
+            return renderCorrectAnswerConfirmation();
+        } else {
+            return renderAnswerMeans();
+        }
+    };
     return <><div className={styles.fullHeight}>
         <progress max={exercises.length} value={1 + exercises.length - remainingExercises.length} className={styles.progress}></progress>
         <div className={styles.head}>{speakAnswerAsQuestionMode ? renderReadQuestion() : renderShowQuestion() }</div>
-        { !correctAnswerHintVisible ? renderAnswerMeans() : renderWrongAndCorrectAnswer() }
+        { renderMain() }
         <div className={styles.buttons}>
             <button onClick={() => onLessonDone?.() }>Abort</button>
             <button onClick={() => showNextExcercise()}>Skip</button>

@@ -5,7 +5,7 @@ import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
 import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, byStatus, Knowledge } from './util.js';
 import { CourseList} from './CourseList.js';
-import { AudioExercisesEnabledContext } from './contexts.js';
+import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 
 function App() {
     const [loading, setLoading] = useState(true);
@@ -70,6 +70,9 @@ function App() {
     
     const [audioExercisesEnabled, setAudioExercisesEnabled] = useLocalStorageState('audioExercisesEnabled', {
         defaultValue: true
+    });
+    const [correctAnswerConfirmationsEnabled, setCorrectAnswerConfirmationsEnabled] = useLocalStorageState('correctAnswerConfirmationsEnabled', {
+        defaultValue: false
     });
     
     useEffect(() => {
@@ -210,11 +213,15 @@ function App() {
         return <CourseDetails course={activeCourseData} progress={progress} onBackToCourseList={onBackToCourseList} getProgressForExercises={progressForExercises} statusForExercise={statusForExercise} showDynamicLesson={showDynamicLesson}/>
     } else if((hash==='lesson' || hash==='definition') && activeCourseData) {
         return <AudioExercisesEnabledContext.Provider value={audioExercisesEnabled}>
-            <LessonOngoing course={activeCourseData} exercises={ongoingLessionExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={showActiveCourseDetails} />
+            <CorrectAnswerConfirmationsEnabledContext.Provider value={correctAnswerConfirmationsEnabled}>
+                <LessonOngoing course={activeCourseData} exercises={ongoingLessionExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={showActiveCourseDetails} />
+            </CorrectAnswerConfirmationsEnabledContext.Provider>
         </AudioExercisesEnabledContext.Provider>;
     } else {
         return <AudioExercisesEnabledContext.Provider value={audioExercisesEnabled}>
-            <CourseList courseIndex={ courseIndex } knowledge={knowledge} onCourseSelected={onCourseSelected} setAudioExercisesEnabled={setAudioExercisesEnabled} />
+            <CorrectAnswerConfirmationsEnabledContext.Provider value={correctAnswerConfirmationsEnabled}>
+                <CourseList courseIndex={ courseIndex } knowledge={knowledge} onCourseSelected={onCourseSelected} setAudioExercisesEnabled={setAudioExercisesEnabled} setCorrectAnswerConfirmationsEnabled={setCorrectAnswerConfirmationsEnabled} />
+            </CorrectAnswerConfirmationsEnabledContext.Provider>
         </AudioExercisesEnabledContext.Provider>;
     }
 }

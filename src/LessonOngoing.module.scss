@@ -52,6 +52,22 @@
     border-left: 0.5rem solid darkgray;
     padding-left: 0.5rem;
 }
+
+.correctAnswerConfirmation {
+    border: 1rem solid #ceffce;
+    margin: 1rem 0;
+    padding: 0 1rem;
+    
+    h2 {
+        font-size: 1.2rem;
+    }
+    
+    p {
+        border-left: 0.5rem solid darkgray;
+        padding-left: 0.5rem;
+    }
+}
+
 .buttons {
     margin: 2rem 0 0;
     display: flex;
@@ -66,5 +82,9 @@
         .diffCorrected {
             background: #002000;
         }
+    }
+    
+    .correctAnswerConfirmation {
+        border-color: darkgreen;
     }
 }

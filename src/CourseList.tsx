@@ -2,7 +2,7 @@ import { CourseTile } from './CourseTile.js';
 import useLocalStorageState from 'use-local-storage-state';
 import styles from './CourseList.module.scss';
 import { CourseMeta, Knowledge } from './util.js';
-import { AudioExercisesEnabledContext } from './contexts.js';
+import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 import { useContext } from 'react';
 
 interface CourseListProps {
@@ -10,9 +10,10 @@ interface CourseListProps {
     knowledge: Knowledge;
     onCourseSelected?: (langPair: string) => void;
     setAudioExercisesEnabled: (audioExercisesEnabled: boolean) => void;
+    setCorrectAnswerConfirmationsEnabled: (correctAnswerConfirmationsEnabled: boolean) => void;
 }
 
-export function CourseList({ courseIndex, knowledge, onCourseSelected, setAudioExercisesEnabled }: CourseListProps) {
+export function CourseList({ courseIndex, knowledge, onCourseSelected, setAudioExercisesEnabled, setCorrectAnswerConfirmationsEnabled }: CourseListProps) {
     const sourceLanguages = Array.from(new Set(
         Object.keys(courseIndex).map(langPair => langPair.replace(/ to.*$/, ''))
     )).sort();
@@ -23,6 +24,7 @@ export function CourseList({ courseIndex, knowledge, onCourseSelected, setAudioE
     const languagesInEnglish = new Intl.DisplayNames(['en'], { type: 'language' });
     
     const audioExercisesEnabled = useContext(AudioExercisesEnabledContext);
+    const correctAnswerConfirmationsEnabled = useContext(CorrectAnswerConfirmationsEnabledContext);
     
     return <div>
         <div className={styles.sourceLanguage}>
@@ -33,7 +35,8 @@ export function CourseList({ courseIndex, knowledge, onCourseSelected, setAudioE
                 })
             }</select>
         </div>
-        <div className={styles.audioControls} onClick={() => setAudioExercisesEnabled(!audioExercisesEnabled) }>{ audioExercisesEnabled ? '🔊 Audio exercises are on' : '🔇 Audio exercises are off' }</div>
+        <div className={styles.option} onClick={() => setAudioExercisesEnabled(!audioExercisesEnabled) }>{ audioExercisesEnabled ? '🔊 Audio exercises are on' : '🔇 Audio exercises are off' }</div>
+        <div className={styles.option} onClick={() => setCorrectAnswerConfirmationsEnabled(!correctAnswerConfirmationsEnabled) }>{ correctAnswerConfirmationsEnabled ? '🛈 Show correct answers confirmations' : '🗲 Skip correct answer confirmations' }</div>
         {
             pairs.map(langPair => {
             const courseMeta = courseIndex[langPair];
