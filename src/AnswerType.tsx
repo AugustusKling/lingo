@@ -29,8 +29,8 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, hi
     
     const wordSuggestions = useMemo(
         () => Array.from(new Set([
-            ...answerOptions.flatMap(answerOption => answerOption.text.split(/\s+|[.¿?,?!;"-””]/)).filter(wordSuggestion => wordSuggestion !== ''),
-            ...answerOptions.flatMap(answerOption => Array.from(new Set(answerOption.text.replace(/[^.¿?,?!;"-””]/g, ''))))
+            ...answerOptions.flatMap(answerOption => answerOption.text.split(/\s+|[.¿?,?!;"””]/)).filter(wordSuggestion => wordSuggestion !== ''),
+            ...answerOptions.flatMap(answerOption => Array.from(new Set(answerOption.text.replace(/[^.¿?,?!;"””]/g, '')))) 
         ])).sort(() => Math.random() - 0.5),
         [answerOptions]
     );

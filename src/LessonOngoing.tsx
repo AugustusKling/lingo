@@ -15,7 +15,7 @@ export interface LessonOngoingProps {
 }
 
 function doAnswersMatch(a: string, b: string): boolean {
-    const ignoreChars = /[.¿?,?!;"-””]/g;
+    const ignoreChars = /[.¿?,?!;"””-]/g;
     return a.replace(ignoreChars, '').toLowerCase() === b.replace(ignoreChars, '').toLowerCase();
 }
 
