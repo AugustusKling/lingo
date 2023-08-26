@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { pickRandom, findWrongAnswers, Course, Translation } from './util.js';
+import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords } from './util.js';
 import styles from './AnswerType.module.scss';
 
 interface AnswerTypeProps {
@@ -29,8 +29,7 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, hi
     
     const wordSuggestions = useMemo(
         () => Array.from(new Set([
-            ...answerOptions.flatMap(answerOption => answerOption.text.split(/\s+|[.¿?,?!;"””]/)).filter(wordSuggestion => wordSuggestion !== ''),
-            ...answerOptions.flatMap(answerOption => Array.from(new Set(answerOption.text.replace(/[^.¿?,?!;"””]/g, '')))) 
+            ...answerOptions.flatMap(answerOption => segmentToWords(answerOption.text, course.to).filter(s => s.isWordLike || !/^\s+$/g.test(s.segment) ).map(s => s.segment))
         ])).sort(() => Math.random() - 0.5),
         [answerOptions]
     );

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useContext } from 'react';
-import { pickRandom, Course, Translation, getVoices, speak } from './util.js';
+import { pickRandom, Course, Translation, getVoices, speak, segmentToWords } from './util.js';
 import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
@@ -14,9 +14,10 @@ export interface LessonOngoingProps {
     onExerciseConfirmed: (_: {course: Course, exercise: Translation, answerCorrect: boolean}) => void;
 }
 
-function doAnswersMatch(a: string, b: string): boolean {
-    const ignoreChars = /[.¿?,?!;"””-]/g;
-    return a.replace(ignoreChars, '').toLowerCase() === b.replace(ignoreChars, '').toLowerCase();
+function doAnswersMatch(a: string, b: string, language: string): boolean {
+    const aNormalized = segmentToWords(a, language).filter(s => s.isWordLike).map(s => s.segment).join(' ').toLowerCase();
+    const bNormalized = segmentToWords(b, language).filter(s => s.isWordLike).map(s => s.segment).join(' ').toLowerCase();
+    return aNormalized === bNormalized;
 }
 
 export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfirmed}: LessonOngoingProps) {
@@ -109,7 +110,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         if (correctAnswerHintVisible || correctAnswerConfirmationVisible) {
             showNextExcercise();
         } else {
-            const answerCorrect = acceptedAnswers.some(correctOption => doAnswersMatch(correctOption.text, answerText));
+            const answerCorrect = acceptedAnswers.some(correctOption => doAnswersMatch(correctOption.text, answerText, course.to));
             onExerciseConfirmed({
                 course,
                 exercise: currentExercise,
@@ -177,7 +178,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     };
     
     const renderCorrectAnswerConfirmation = () => {
-        const correctAnswer = acceptedAnswers.find(correctOption => doAnswersMatch(correctOption.text, currentAnswer));
+        const correctAnswer = acceptedAnswers.find(correctOption => doAnswersMatch(correctOption.text, currentAnswer, course.to));
         const alsoCorrectAnswers = acceptedAnswers.filter(sentence => sentence.id !== correctAnswer.id);
         return <div className={styles.correctAnswerConfirmation}>
             <h2>You answered correctly</h2>

@@ -139,3 +139,39 @@ export function byStatus(langKnowledge: LangKnowledge, exercises: string[]): Rec
         learned: [],
     }, grouped);
 }
+
+export function segmentToWords(text: string, language: string): { segment: string; isWordLike: true; }[] {
+    try {
+        if (Intl.Segmenter) {
+            // Hope browser handles language somewhat correctly.
+            const segmenter = new Intl.Segmenter(language, { granularity: "word" });
+            return Array.from(segmenter.segment(text));
+        }
+    } finally {}
+    
+    // Fallback to character based approach which fails for many cases, especially languages that don't separate words.
+    const segments = [];
+    const matches = text.matchAll(/\s+|[.¿?,?!;"””«»]|:(?=\s)|\-/g);
+    let consumed = 0;
+    for(const match of matches) {
+        const before = text.slice(consumed, match.index);
+        if(before.length > 0) {
+            segments.push({
+                segment: before,
+                isWordLike: true
+            });
+        }
+        consumed = match.index + match[0].length;
+        segments.push({
+            segment: text.slice(match.index, consumed),
+            isWordLike: false
+        });
+    }
+    if(consumed < text.length) {
+        segments.push({
+            segment: text.slice(consumed, text.length),
+            isWordLike: true
+        });
+    }
+    return segments;
+}
