@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import useLocalStorageState from 'use-local-storage-state'
 import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
-import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, byStatus, Knowledge } from './util.js';
+import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises } from './util.js';
 import { CourseList} from './CourseList.js';
 import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 
@@ -152,32 +152,31 @@ function App() {
     }
     
     const showDynamicLesson = (lang: string, exercisePicklist: string[]) => {
-        const exercisesByStatus = byStatus(knowledge[lang] || {}, exercisePicklist);
         const amountToShow = Math.min(10, exercisePicklist.length);
-        const picklistCopy = [...(exercisesByStatus.wrong || []), ...(exercisesByStatus.somewhat || [])];
-        const picked: string[] = [];
-        // 70 % wrong or somewhat mastered sentences.
-        while(picked.length < Math.min(amountToShow*0.7, picklistCopy.length)) {
-            const pickedIndex = Math.floor(Math.random() * picklistCopy.length);
-            picked.push(...picklistCopy.splice(pickedIndex, 1));
-        }
-        // 30 % unseen sentences.
-        while(picked.length < amountToShow && exercisesByStatus.unseen?.length > 0) {
-            const pickedIndex = Math.floor(Math.random() * exercisesByStatus.unseen.length);
-            picked.push(...exercisesByStatus.unseen.splice(pickedIndex, 1));
-        }
-        // Fill up to 100% with everything not masteded.
-        const everythingButMastered = picklistCopy.concat(exercisesByStatus.unseen);
-        while(picked.length < Math.min(amountToShow, everythingButMastered.length)) {
-            const pickedIndex = Math.floor(Math.random() * everythingButMastered.length);
-            picked.push(...everythingButMastered.splice(pickedIndex, 1));
-        }
-        // If 100% still not reached pick any sentence from exercise.
-        const unpickedSoFar = exercisePicklist.filter(e => !picked.includes(e));
+        const rankable = rankableExercises(knowledge[lang], exercisePicklist);
+        const now = new Date().getTime();
+        const ranked = rankable.sort((a, b) => {
+            const aHidden = a.hiddenUntil > now;
+            const bHidden = b.hiddenUntil > now;
+            if (aHidden && !bHidden) {
+                return 1;
+            } else if(!aHidden && bHidden) {
+                return -1;
+            }
+            
+            return a.rank - b.rank;
+        });
+        
+        const picked: string[] = ranked.splice(0, Math.min(amountToShow*0.7, ranked.length)).map(r => r.id);
         while(picked.length < amountToShow) {
-            const pickedIndex = Math.floor(Math.random() * unpickedSoFar.length);
-            picked.push(...unpickedSoFar.splice(pickedIndex, 1));
+            const pickedIndex = ranked.findIndex(r => r.unseen);
+            if (pickedIndex === -1) {
+                break;
+            }
+            picked.push(...ranked.splice(pickedIndex, 1).map(r => r.id));
         }
+        const fillers = ranked.splice(0, Math.min(amountToShow - picked.length, ranked.length)).map(r => r.id);
+        picked.push(...fillers);
         picked.sort(() => Math.random() - 0.5);
         setOngoingLessionExercises(picked);
         setHash('lesson');

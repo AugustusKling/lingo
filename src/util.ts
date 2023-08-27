@@ -120,8 +120,7 @@ export function statusForExerciseReact(langKnowledge: LangKnowledge, exerciseNam
     if(!knowledge) {
         return "unseen";
     }
-    const now = new Date().getTime();
-    if(knowledge.lastAnswersCorrect.length>2 && knowledge.lastAnswersCorrect.every(answer => answer) && now < knowledge.hiddenUntil) {
+    if(knowledge.lastAnswersCorrect.length>2 && knowledge.lastAnswersCorrect.every(answer => answer)) {
         return "learned";
     }
     if(knowledge.lastAnswersCorrect.find((answer, index) => !answer && (knowledge.lastAnswersCorrect.length - index) <= 3) === false) {
@@ -138,6 +137,27 @@ export function byStatus(langKnowledge: LangKnowledge, exercises: string[]): Rec
         somewhat: [],
         learned: [],
     }, grouped);
+}
+
+export function rankableExercises(langKnowledge: LangKnowledge, exercises: string[]): {id: string; rank: number; hiddenUntil: number; unseen: boolean;}[] {
+    return exercises.map(id => {
+        const exerciseKnowledge = langKnowledge[id];
+        if (!exerciseKnowledge) {
+            return {
+                id,
+                rank: 0,
+                hiddenUntil: 0,
+                unseen: true
+            };
+        }
+        const rank = exerciseKnowledge.lastAnswersCorrect.reduce((accu, current) => current ? accu + 1 : accu - 1, 0);
+        return {
+            id,
+            rank,
+            hiddenUntil: exerciseKnowledge.hiddenUntil,
+            unseen: false
+        };
+    });
 }
 
 export function segmentToWords(text: string, language: string): { segment: string; isWordLike: true; }[] {
