@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords } from './util.js';
 import styles from './AnswerType.module.scss';
 
@@ -7,10 +7,11 @@ interface AnswerTypeProps {
     currentExercise: Translation;
     currentAnswer: string;
     onChange: (answer: string) => void;
+    onConfirm: (answer: string) => void;
     hint: string;
 }
 
-export function AnswerType({course, currentExercise, currentAnswer, onChange, hint}: AnswerTypeProps) {
+export function AnswerType({course, currentExercise, currentAnswer, onChange, onConfirm, hint}: AnswerTypeProps) {
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
@@ -34,6 +35,9 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, hi
         [answerOptions]
     );
     
+    const textareaRef = useCallback(textareaNode => {
+        textareaNode?.focus();
+    }, []);
     const [dummyTextareaVisible, setDummyTextareaVisible] = useState(true);
     
     const addSuggestion = (e: MouseEvent, wordSuggestion: string) => {
@@ -51,13 +55,19 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, hi
     };
     const removeAnimation = (e) => {
         e.target.classList.remove(styles.clicked);
-    }
+    };
+    const confirmOnEnter = (e) => {
+        if (e.key === "Enter" && e.shiftKey == false) {
+            onConfirm(e.target.value);
+            e.preventDefault();
+        }
+    };
     
     return <div className={styles.typeAnswer}>
         <p>{ hint }</p>
         <div className={styles.textInput}>
             { dummyTextareaVisible ? <div className={styles.textarea} onClick={() => setDummyTextareaVisible(false)}>&#8203;{currentAnswer}</div>
-            : <textarea type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} />}<button onClick={() => removeLastWord() }>Clear</button>
+            : <textarea ref={textareaRef} type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} onKeyPress={confirmOnEnter} />}<button onClick={() => removeLastWord() }>Clear</button>
         </div>
         <div className={styles.wordSuggestions} onAnimationEnd={removeAnimation}>{
             wordSuggestions.map(suggestion => {

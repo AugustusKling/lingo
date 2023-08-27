@@ -141,7 +141,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
     
     const renderAnswerMeans = () => {
         if (typeAnswerMode) {
-            return <AnswerType course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onChange={setCurrentAnswer} hint={
+            return <AnswerType course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onChange={setCurrentAnswer} onConfirm={confirm} hint={
                 speakAnswerAsQuestionMode ? 'Type what you heard' : 'Type translation'
             } />;
         } else {
