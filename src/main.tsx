@@ -90,8 +90,11 @@ function App() {
     }, []);
     
     const downloadCourseIfOutdated = async (langPair: string) => {
-        const cache = await caches.open('lingo');
         const request = new Request('dist-data/courses/'+encodeURI(langPair+'.json'));
+        if (!window.caches) {
+            return (await fetch(request)).json();
+        }
+        const cache = await caches.open('lingo');
         let cachedResponse = await cache.match(request);
         if (cachedResponse) {
             const downloadTime = Date.parse(cachedResponse.headers.get('x-date'));
