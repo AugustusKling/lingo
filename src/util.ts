@@ -36,6 +36,13 @@ export interface CourseMeta {
     exercises: number;
 }
 
+export interface RankableExercise {
+    id: string;
+    rank: number;
+    hiddenUntil: number;
+    unseen: boolean;
+}
+
 export function pickRandom<X>(array: Array<X>): X {
     return array[Math.floor(Math.random() * array.length)];
 }
@@ -139,7 +146,7 @@ export function byStatus(langKnowledge: LangKnowledge, exercises: string[]): Rec
     }, grouped);
 }
 
-export function rankableExercises(langKnowledge: LangKnowledge, exercises: string[]): {id: string; rank: number; hiddenUntil: number; unseen: boolean;}[] {
+export function rankableExercises(langKnowledge: LangKnowledge, exercises: string[]): RankableExercise[] {
     return exercises.map(id => {
         const exerciseKnowledge = langKnowledge[id];
         if (!exerciseKnowledge) {
@@ -159,6 +166,21 @@ export function rankableExercises(langKnowledge: LangKnowledge, exercises: strin
         };
     });
 }
+
+export const rankableExerciseComparator =() => {
+    const now = new Date().getTime();
+    return (a: RankableExercise, b: RankableExercise) => {
+        const aHidden = a.hiddenUntil > now;
+        const bHidden = b.hiddenUntil > now;
+        if (aHidden && !bHidden) {
+            return 1;
+        } else if(!aHidden && bHidden) {
+            return -1;
+        }
+        
+        return a.rank - b.rank;
+    };
+};
 
 export function segmentToWords(text: string, language: string): { segment: string; isWordLike: true; }[] {
     try {

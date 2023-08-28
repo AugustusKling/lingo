@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import useLocalStorageState from 'use-local-storage-state'
 import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
-import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises } from './util.js';
+import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises, rankableExerciseComparator, RankableExercise } from './util.js';
 import { CourseList} from './CourseList.js';
 import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 
@@ -154,18 +154,22 @@ function App() {
     const showDynamicLesson = (lang: string, exercisePicklist: string[]) => {
         const amountToShow = Math.min(10, exercisePicklist.length);
         const rankable = rankableExercises(knowledge[lang], exercisePicklist);
-        const now = new Date().getTime();
-        const ranked = rankable.sort((a, b) => {
-            const aHidden = a.hiddenUntil > now;
-            const bHidden = b.hiddenUntil > now;
-            if (aHidden && !bHidden) {
-                return 1;
-            } else if(!aHidden && bHidden) {
-                return -1;
+        const comparator = rankableExerciseComparator();
+        const rankedUnshuffled = rankable.sort(comparator);
+        
+        // Shuffle exercises of equal sort order,
+        const rankedGroups: RankableExercise[][] = [rankedUnshuffled.splice(0, 1)];
+        for(const exercise of rankedUnshuffled) {
+            const lastGroup = rankedGroups[rankedGroups.length - 1];
+            const lastExercise = lastGroup[lastGroup.length - 1];
+            const sameRankGroup = comparator(lastExercise, exercise) === 0;
+            if (sameRankGroup) {
+                lastGroup.push(exercise);
+            } else {
+                rankedGroups.push([exercise]);
             }
-            
-            return a.rank - b.rank;
-        });
+        }
+        const ranked = rankedGroups.flatMap(group => group.sort(() => Math.random() - 0.5));
         
         const picked: string[] = ranked.splice(0, Math.min(amountToShow*0.7, ranked.length)).map(r => r.id);
         while(picked.length < amountToShow) {
