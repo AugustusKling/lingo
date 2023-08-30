@@ -20,14 +20,24 @@
     margin: 1rem 0 0.5rem;
     font-size: 1.2rem;
 }
+
+.buttonContainer {
+    display: flex;
+    margin-top: 0.5rem;
+    justify-content: space-between;
+}
+
 .definitionOverlay .translations {
     flex: 1;
 }
 .definitionOverlay .translation {
     border-left: 0.5rem solid darkgray;
     padding-left: 0.5rem;
-    margin: 0.5rem 0;
+    margin: 1rem 0;
     background: white;
+}
+.definitionOverlay .translation:first-child {
+    margin-top: 0.5rem;
 }
 .definitionOverlay .weblink {
     font-size: 0.8rem;

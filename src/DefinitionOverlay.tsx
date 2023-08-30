@@ -27,19 +27,28 @@ export function DefinitionOverlay({exercise, course, onBackToExercise}: Definiti
             <div key={translation.id}>
                 <div className={styles.translation}>
                     <h3>{translation.text}</h3>
-                    { hasVoices && <button onClick={() => speak(translation.text, voices)}>Speak</button> }
                     { translation.source && <Source translation={translation} /> }
                     { translation.licence && <Licence translation={translation} /> }
+                    <div className={styles.buttonContainer}>
+                        <button onClick={() => open(translation.source, '_blank')}>Open on Tatoeba</button>
+                        { hasVoices && <button onClick={() => speak(translation.text, voices)}>Speak</button> }
+                    </div>
                 </div>
             </div>
         )];
     }
 
+    const langExercise = sentenceIdSourceLanguage ? course.from : course.to;
+    const voicesExercise = getVoices(langExercise);
     return <div className={styles.definitionOverlay} style={{display:'flex'}}>
         <button className={styles.buttonBack} onClick={() => onBackToExercise?.()}>Back to exercise</button>
         <h1 className={styles.title}>{exercise.text}</h1>
         <Source translation={exercise} />
         <Licence translation={exercise} />
+        <div className={styles.buttonContainer}>
+            <button onClick={() => open(exercise.source, '_blank')}>Open on Tatoeba</button>
+            { voicesExercise.length > 0 && <button onClick={() => speak(exercise.text, voicesExercise)}>Speak</button> }
+        </div>
         
         <div className={styles.translations}>
             {renderTranslations()}
