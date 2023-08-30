@@ -153,7 +153,7 @@ function App() {
     
     const showDynamicLesson = (lang: string, exercisePicklist: string[]) => {
         const amountToShow = Math.min(10, exercisePicklist.length);
-        const rankable = rankableExercises(knowledge[lang], exercisePicklist);
+        const rankable = rankableExercises(knowledge[lang] ?? {}, exercisePicklist);
         const comparator = rankableExerciseComparator();
         const rankedUnshuffled = rankable.sort(comparator);
         
