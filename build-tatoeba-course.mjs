@@ -99,10 +99,19 @@ for(const {sentenceId, tag} of sentenceAndTag) {
         tagsToSentenceIds[tag] = [sentenceId];
     }
 }
+// Add sentences from lessons.
+lessons.flatMap(lesson => lesson.exercises ?? []).forEach(sentenceId => taggedSentenceIds.add(sentenceId));
 
 if (links.length > 50_000) {
-    console.log(`Restricting to tagged sentences to reduce data amout`);
-    links = links.filter(({fromId, toId}) => taggedSentenceIds.has(fromId) || taggedSentenceIds.has(toId));
+    const englishSentencesTranslatedToAnyCourseContent = Array.from(taggedSentenceIds)
+        .filter(mayBeEnglishSentenceId => expansions[mayBeEnglishSentenceId] !== undefined);
+    const indirectCourseSentencesIds = new Set(englishSentencesTranslatedToAnyCourseContent.flatMap(englishSentenceId => expansions[englishSentenceId]));
+    console.log(`Restricting to tagged sentences to reduce data amount`);
+    links = links.filter(({fromId, toId}) => {
+        const courseContentDirectlyReferenceFromAnyLesson = taggedSentenceIds.has(fromId) || taggedSentenceIds.has(toId);
+        const courseContentReferencedViaEnglishTranslationFromAnyLesson = indirectCourseSentencesIds.has(fromId) || indirectCourseSentencesIds.has(toId);
+        return courseContentDirectlyReferenceFromAnyLesson || courseContentReferencedViaEnglishTranslationFromAnyLesson;
+    });
     console.log(`${links.length} links remaining.`);
 }
 
