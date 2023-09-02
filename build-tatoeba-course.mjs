@@ -61,9 +61,8 @@ for(const lessonName of lessonNames) {
         const doc = yaml.load(fs.readFileSync(`lessons/${lessonName}`, 'utf8'));
         if (!doc.title[fromLanguage] && !doc.title[toLanguage]) {
             console.log(`Failed to read ${lessonName}. It has no title.`);
-        } else {
-            lessons.push({...doc, name: lessonName});
         }
+        lessons.push({...doc, name: lessonName});
     } catch (e) {
         console.log('Failed to read ' + lessonName, e);
     }

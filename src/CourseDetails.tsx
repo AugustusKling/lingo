@@ -16,7 +16,7 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
     const renderLessonTiles = () => {
         const sortedLessons = [...course.lessons].sort((a, b) => (a.order || 0) - (b.order || 0));
         return sortedLessons.map((lesson, index) => {
-            const title = lesson.title[course.to] || lesson.title[course.from];
+            const title = lesson.title[course.to] ?? lesson.title[course.from] ?? lesson.title.eng;
             return <LessonTile course={course} lesson={lesson} title={title} exerciseCount={lesson.exercises.length} progress={getProgressForExercises(course.to, lesson.exercises)} onExercisesSelected={() => showDynamicLesson(course.to, lesson.exercises)} key={index} />;
         });
     };
