@@ -1,12 +1,61 @@
 import fs  from 'node:fs';
 import yaml from 'js-yaml';
-import { open } from 'node:fs/promises';
+import { open, mkdir, stat } from 'node:fs/promises';
+import { dirname } from 'node:path';
+import { Readable } from 'node:stream';
+import { finished } from 'node:stream/promises';
+import { execSync } from 'node:child_process';
 
 const [nodeExecutable, scriptName, fromLanguage, toLanguage] = process.argv;
-const linksFileName = `${fromLanguage}-${toLanguage}_links.tsv`;
 
-async function readTsv(filename, headers) {
-    const file = await open(filename);
+/**
+ * Fetches and extracts Tatoeba data.
+ * @return Local path to extracted file.
+ */
+async function getTatoebaFile(path) {
+    if (!path.startsWith('/')) {
+        throw new Error('Invalid path');
+    }
+    const url = new URL('https://downloads.tatoeba.org/');
+    url.pathname = path;
+    
+    const targetFile = './tatoeba-downloads' + path;
+    const targetFileExtracted =  targetFile.replace(/\.tsv\.bz2$/, '.tsv');
+    const folderPath = dirname(targetFileExtracted);
+    await mkdir(folderPath, { recursive: true });
+    const headers = {};
+    let cacheLastModified = new Date(0);
+    try {
+        cacheLastModified = (await stat(targetFileExtracted)).mtime;
+        headers['If-Modified-Since'] = cacheLastModified.toGMTString();
+    } catch {
+        console.log(`${path} was not download before`);
+    }
+    
+    const response = await fetch(url, { headers });
+    // Response status is not set properly, but last-modified header is there.
+    const serverLastModified = response.headers.get('Last-Modified') && new Date(response.headers.get('Last-Modified'));
+    if (response.status === 304 || (serverLastModified && serverLastModified < cacheLastModified)) {
+        // Cached version is still current.
+        return targetFileExtracted;
+    } else if (response.status !== 200) {
+        throw new Error(`Download of ${url} failed.`);
+    } else {
+        console.log(`Updating cached version of ${url}`);
+        const writeStream = fs.createWriteStream(targetFile, { flags: 'wx' });
+        await finished(Readable.fromWeb(response.body).pipe(writeStream));
+        
+        if (targetFile.endsWith('.tsv.bz2')) {
+            // Extract and delete compressed file.
+            execSync(`bunzip2 --decompress ${targetFile}`);
+        }
+        
+        return targetFileExtracted;
+    }
+}
+
+async function readTsv(tatoebaPath, headers) {
+    const file = await open(await getTatoebaFile(tatoebaPath));
 
     const lines = [];
     for await (const line of file.readLines()) {
@@ -43,14 +92,14 @@ console.log(`Building course ${fromLanguage} to ${toLanguage}`);
 
 
 console.log('Reading sentences for ' + fromLanguage);
-const fromTranslations = await readTsv(fromLanguage + '_sentences_detailed.tsv', detailColumnNames);
+const fromTranslations = await readTsv(`/exports/per_language/${fromLanguage}/${fromLanguage}_sentences_detailed.tsv.bz2`, detailColumnNames);
 const fromTranslationsByRef = byRef(fromTranslations);
 console.log('Reading sentences for ' + toLanguage);
-const toTranslations = await readTsv(toLanguage + '_sentences_detailed.tsv', detailColumnNames);
+const toTranslations = await readTsv(`/exports/per_language/${toLanguage}/${toLanguage}_sentences_detailed.tsv.bz2`, detailColumnNames);
 const toTranslationsByRef = byRef(toTranslations);
 
 console.log('Reading links');
-let links = await readTsv(linksFileName, ['fromId', 'toId']);
+let links = await readTsv(`/exports/per_language/${fromLanguage}/${fromLanguage}-${toLanguage}_links.tsv.bz2`, ['fromId', 'toId']);
 console.log(links.length + ' sentence links found');
 
 
@@ -68,7 +117,7 @@ for(const lessonName of lessonNames) {
     }
 }
 console.log(`Loaded ${lessons.length} lessons.`);
-const expansionFiles = [`eng-${fromLanguage}_links.tsv`, `eng-${toLanguage}_links.tsv`].filter(fileName => !fileName.startsWith('eng-eng'));
+const expansionFiles = [`/exports/per_language/eng/eng-${fromLanguage}_links.tsv.bz2`, `/exports/per_language/eng/eng-${toLanguage}_links.tsv.bz2`].filter(fileName => !fileName.startsWith('eng-eng'));
 console.log(`Loading exercise expansions ${expansionFiles}.`);
 const expansions = {};
 for(const expansionFileName of expansionFiles) {
@@ -84,7 +133,7 @@ for(const expansionFileName of expansionFiles) {
 
 console.log(`Loading tags`);
 const usedTags = lessons.flatMap(lesson => lesson.exerciseTags || []);
-const sentenceAndTag = await readTsv('tags.csv', ['sentenceId', 'tag']);
+const sentenceAndTag = await readTsv('/exports/tags.csv', ['sentenceId', 'tag']);
 const tagsToSentenceIds = {};
 const taggedSentenceIds = new Set();
 for(const {sentenceId, tag} of sentenceAndTag) {
