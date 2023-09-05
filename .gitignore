@@ -1,4 +1,9 @@
 node_modules/
 tatoeba-downloads/
-*.csv
-*.tsv
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
