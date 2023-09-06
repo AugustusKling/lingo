@@ -1,6 +1,7 @@
 import { useState, useMemo, MouseEvent } from 'react';
 import { pickRandom, findWrongAnswers, speak, Course, Translation } from './util.js';
 import styles from './AnswerPick.module.scss';
+import { useTranslation } from "react-i18next";
 
 interface AnswerPickProps {
     course: Course;
@@ -15,6 +16,7 @@ interface AnswerPickProps {
 }
 
 export function AnswerPick({course, currentExercise, currentAnswer, onSelect, onConfirm, onShowDefinition, voices, acousticPick, hint}: AnswerPickProps) {
+    const { t } = useTranslation();
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
@@ -43,11 +45,11 @@ export function AnswerPick({course, currentExercise, currentAnswer, onSelect, on
     
     const renderAnswerOptions = () => {
         return answerOptions.map((answerOption, index) => {
-            const infoButton = <button className={styles.buttonDefinition} onClick={e => showDefinition(answerOption, e)}>Info</button>;
+            const infoButton = <button className={styles.buttonDefinition} onClick={e => showDefinition(answerOption, e)}>{ t('AnswerPick.info') }</button>;
             const answerClasses = currentAnswer===answerOption.text ? `${styles.answer} ${styles.selected}` : styles.answer;
             if (acousticPick) {
                 return <p className={answerClasses} onClick={() => onSelect(answerOption.text)} key={index}>
-                    <button onClick={() => speakAndSelect(answerOption) }>Speak</button>
+                    <button onClick={() => speakAndSelect(answerOption) }>{ t('AnswerPick.speak') }</button>
                     { infoButton }
                 </p>;
             } else {

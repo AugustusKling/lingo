@@ -1,0 +1,7 @@
+locales:
+  - en
+  - de
+output: src/locales/$LOCALE/$NAMESPACE.json
+input:
+  - src/**.tsx
+keySeparator: false

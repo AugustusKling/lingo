@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords } from './util.js';
 import styles from './AnswerType.module.scss';
+import { useTranslation } from "react-i18next";
 
 interface AnswerTypeProps {
     course: Course;
@@ -12,6 +13,7 @@ interface AnswerTypeProps {
 }
 
 export function AnswerType({course, currentExercise, currentAnswer, onChange, onConfirm, hint}: AnswerTypeProps) {
+    const { t } = useTranslation();
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
@@ -67,7 +69,7 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
         <p>{ hint }</p>
         <div className={styles.textInput}>
             { dummyTextareaVisible ? <div className={styles.textarea} onClick={() => setDummyTextareaVisible(false)}>&#8203;{currentAnswer}</div>
-            : <textarea ref={textareaRef} type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} onKeyPress={confirmOnEnter} />}<button onClick={() => removeLastWord() }>Clear</button>
+            : <textarea ref={textareaRef} type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} onKeyPress={confirmOnEnter} />}<button onClick={() => removeLastWord() }>{ t('AnswerType.clear') }</button>
         </div>
         <div className={styles.wordSuggestions} onAnimationEnd={removeAnimation}>{
             wordSuggestions.map(suggestion => {

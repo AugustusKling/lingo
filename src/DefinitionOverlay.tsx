@@ -1,5 +1,6 @@
 import { getVoices, speak, Translation, Course } from './util.js';
 import styles from './DefinitionOverlay.module.scss';
+import { useTranslation } from "react-i18next";
 
 const licenseNames: Partial<Record<string, string>> = {
     'https://creativecommons.org/licenses/by-sa/3.0/': 'CC BY-SA 3.0',
@@ -13,6 +14,7 @@ interface DefinitionOverlayProps {
 }
 
 export function DefinitionOverlay({exercise, course, onBackToExercise}: DefinitionOverlayProps) {
+    const { t } = useTranslation();
     const sentenceIdSourceLanguage = course.sentences[course.from].some(s => s === exercise);
     const translationIds = course.links.filter(link => link.includes(exercise.id)).flatMap(link => link).filter(id => id !== exercise.id);
     const translations = (sentenceIdSourceLanguage ? course.sentences[course.to] : course.sentences[course.from])
@@ -30,8 +32,8 @@ export function DefinitionOverlay({exercise, course, onBackToExercise}: Definiti
                     { translation.source && <Source translation={translation} /> }
                     { translation.licence && <Licence translation={translation} /> }
                     <div className={styles.buttonContainer}>
-                        <button onClick={() => open(translation.source, '_blank')}>Open on Tatoeba</button>
-                        { hasVoices && <button onClick={() => speak(translation.text, voices)}>Speak</button> }
+                        <button onClick={() => open(translation.source, '_blank')}>{ t('DefinitionOverlay.openTatoeba') }</button>
+                        { hasVoices && <button onClick={() => speak(translation.text, voices)}>{ t('DefinitionOverlay.speak') }</button> }
                     </div>
                 </div>
             </div>
@@ -41,13 +43,13 @@ export function DefinitionOverlay({exercise, course, onBackToExercise}: Definiti
     const langExercise = sentenceIdSourceLanguage ? course.from : course.to;
     const voicesExercise = getVoices(langExercise);
     return <div className={styles.definitionOverlay} style={{display:'flex'}}>
-        <button className={styles.buttonBack} onClick={() => onBackToExercise?.()}>Back to exercise</button>
+        <button className={styles.buttonBack} onClick={() => onBackToExercise?.()}>{ t('DefinitionOverlay.backToExercise') }</button>
         <h1 className={styles.title}>{exercise.text}</h1>
         <Source translation={exercise} />
         <Licence translation={exercise} />
         <div className={styles.buttonContainer}>
-            <button onClick={() => open(exercise.source, '_blank')}>Open on Tatoeba</button>
-            { voicesExercise.length > 0 && <button onClick={() => speak(exercise.text, voicesExercise)}>Speak</button> }
+            <button onClick={() => open(exercise.source, '_blank')}>{ t('DefinitionOverlay.openTatoeba') }</button>
+            { voicesExercise.length > 0 && <button onClick={() => speak(exercise.text, voicesExercise)}>{ t('DefinitionOverlay.speak') }</button> }
         </div>
         
         <div className={styles.translations}>
@@ -73,7 +75,8 @@ interface LicenceProps {
     translation: Translation & { licence: string; };
 }
 function Licence({translation}: LicenceProps) {
-    return <a href={translation.licence} className={styles.weblink}>
-        Licence: {licenseNames[translation.licence] || translation.licence}
-    </a>;
+    const { t } = useTranslation();
+    return <a href={translation.licence} className={styles.weblink}>{
+        t('Licence.name', {licenseName: licenseNames[translation.licence] || translation.licence})
+    }</a>;
 }

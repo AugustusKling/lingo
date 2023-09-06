@@ -6,6 +6,12 @@ import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
 import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises, rankableExerciseComparator, RankableExercise } from './util.js';
 import { CourseList} from './CourseList.js';
 import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
+import i18n from "i18next";
+import { useTranslation, initReactI18next } from "react-i18next";
+import LanguageDetector from 'i18next-browser-languagedetector';
+import ICU from "i18next-icu";
+import en from './locales/en/translation.json';
+import de from './locales/de/translation.json';
 
 function App() {
     const [loading, setLoading] = useState(true);
@@ -241,6 +247,23 @@ function App() {
     }
 }
 
+i18n
+  .use(initReactI18next)
+  .use(LanguageDetector)
+  .use(ICU)
+  .init({
+    supportedLngs: ['en', 'de'],
+    fallbackLng: "en",
+    returnEmptyString: false,
+    resources: { en: {translation: en}, de: {translation: de} },
+    detection: {
+        order: ['navigator', 'htmlTag'],
+        caches: []
+    },
+    interpolation: {
+      escapeValue: false // react already safes from xss => https://www.i18next.com/translation-function/interpolation#unescape
+    }
+  });
 
 const root = ReactDOM.createRoot(document.getElementById('app'));
 root.render(<App/>);

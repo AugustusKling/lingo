@@ -1,6 +1,7 @@
 import {Progress, ProgressInfo} from './Progress.js';
 import styles from './LessonTile.module.scss';
 import {Course, Lesson} from './util.js';
+import { useTranslation } from "react-i18next";
 
 interface LessonTileProps {
     course: Course;
@@ -12,11 +13,12 @@ interface LessonTileProps {
 }
 
 export function LessonTile({course, lesson, title, exerciseCount, onExercisesSelected, progress}: LessonTileProps) {
+    const { t } = useTranslation();
     const description = lesson?.description?.[course.to] || lesson?.description?.[course.from];
     return <div className={styles.lesson} onClick={ () => onExercisesSelected?.() }>
         <h1 className={styles.title}>{ title }</h1>
         <Progress progress={progress} />
         { description && <p>{description}</p>}
-        <p>{exerciseCount} exercises</p>
+        <p>{ t('LessonTile.exerciseCount', {exerciseCount}) }</p>
     </div>;
 }
