@@ -1,6 +1,6 @@
 import fs  from 'node:fs';
 import yaml from 'js-yaml';
-import { open, mkdir, stat } from 'node:fs/promises';
+import { open, mkdir, stat, rm } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { Readable } from 'node:stream';
 import { finished } from 'node:stream/promises';
@@ -42,10 +42,13 @@ async function getTatoebaFile(path) {
         throw new Error(`Download of ${url} failed.`);
     } else {
         console.log(`Updating cached version of ${url}`);
-        const writeStream = fs.createWriteStream(targetFile, { flags: 'wx' });
+        const writeStream = fs.createWriteStream(targetFile, { flags: 'w' });
         await finished(Readable.fromWeb(response.body).pipe(writeStream));
         
         if (targetFile.endsWith('.tsv.bz2')) {
+            if (fs.existsSync(targetFileExtracted)) {
+                await rm(targetFileExtracted);
+            }
             // Extract and delete compressed file.
             execSync(`bunzip2 --decompress ${targetFile}`);
         }

@@ -26,6 +26,11 @@ export default {
             src: 'pwa/logo.svg',
             sizes: '512x512',
             type: 'image/svg+xml'
+          },
+          {
+            src: 'pwa/logo.png',
+            sizes: '512x512',
+            type: 'image/png'
           }
         ]
       }
