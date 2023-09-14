@@ -34,6 +34,8 @@ export interface CourseMeta {
     to: string;
     lessons: number;
     exercises: number;
+    /** ISO 8601 timestamp. */
+    buildTime: string;
 }
 
 export interface RankableExercise {
@@ -42,6 +44,9 @@ export interface RankableExercise {
     hiddenUntil: number;
     unseen: boolean;
 }
+
+export type StatusForExercise = (to: string, conceptName: string) => ExerciseStatus;
+export type ExerciseFilter = (statusForExercise: StatusForExercise) => string[];
 
 export function pickRandom<X>(array: Array<X>): X {
     return array[Math.floor(Math.random() * array.length)];
@@ -182,7 +187,7 @@ export const rankableExerciseComparator =() => {
     };
 };
 
-export function segmentToWords(text: string, language: string): { segment: string; isWordLike: true; }[] {
+export function segmentToWords(text: string, language: string): { segment: string; isWordLike: boolean; }[] {
     try {
         if (Intl.Segmenter) {
             // Hope browser handles language somewhat correctly.

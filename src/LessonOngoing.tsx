@@ -7,12 +7,15 @@ import styles from './LessonOngoing.module.scss';
 import {diffStringsRaw, DIFF_EQUAL, DIFF_DELETE, DIFF_INSERT} from 'jest-diff';
 import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 import { useTranslation } from "react-i18next";
+import { Progress, ProgressInfo } from './Progress.js';
 
 export interface LessonOngoingProps {
     course: Course;
     exercises: string[];
     onLessonDone?: () => void;
+    onAbort?: () => void;
     onExerciseConfirmed: (_: {course: Course, exercise: Translation, answerCorrect: boolean}) => void;
+    ongoingLessonProgress: ProgressInfo;
 }
 
 function doAnswersMatch(a: string, b: string, language: string): boolean {
@@ -21,9 +24,9 @@ function doAnswersMatch(a: string, b: string, language: string): boolean {
     return aNormalized === bNormalized;
 }
 
-export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfirmed}: LessonOngoingProps) {
+export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerciseConfirmed, ongoingLessonProgress}: LessonOngoingProps) {
     const { t } = useTranslation();
-    const [remainingExercises, setRemainingExercises] = useState(() => [...exercises]);
+    const [remainingExercises, setRemainingExercises] = useState(exercises);
     const currentExercise = course.sentences[course.to].find(sentence => sentence.id === remainingExercises[0]);
     const questionHint = '';
     const voices = useMemo(
@@ -217,11 +220,11 @@ export function LessonOngoing({course, exercises, onLessonDone, onExerciseConfir
         }
     };
     return <><div className={styles.fullHeight}>
-        <progress max={exercises.length} value={1 + exercises.length - remainingExercises.length} className={styles.progress}></progress>
+        <Progress progress={ongoingLessonProgress} />
         <div className={styles.head}>{speakAnswerAsQuestionMode ? renderReadQuestion() : renderShowQuestion() }</div>
         { renderMain() }
         <div className={styles.buttons}>
-            <button onClick={() => onLessonDone?.() }>{ t('LessonOngoing.abort') }</button>
+            <button onClick={() => onAbort?.() }>{ t('LessonOngoing.abort') }</button>
             <button onClick={() => showNextExcercise()}>{ t('LessonOngoing.skip') }</button>
             <button onClick={() => confirm(currentAnswer)}>{ t('LessonOngoing.confirm') }</button>
         </div>

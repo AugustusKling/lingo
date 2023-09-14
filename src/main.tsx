@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import useLocalStorageState from 'use-local-storage-state'
 import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
-import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises, rankableExerciseComparator, RankableExercise } from './util.js';
+import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises, rankableExerciseComparator, RankableExercise, StatusForExercise, ExerciseFilter } from './util.js';
 import { CourseList} from './CourseList.js';
 import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 import i18n from "i18next";
@@ -12,6 +12,14 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import ICU from "i18next-icu";
 import en from './locales/en/translation.json';
 import de from './locales/de/translation.json';
+import { ProgressInfo } from './Progress.js';
+
+interface OngoingLesson {
+    exerciseFilter: ExerciseFilter;
+    progress: ProgressInfo;
+    batchId: number;
+    batchExercises: string[];
+}
 
 function App() {
     const [loading, setLoading] = useState(true);
@@ -72,7 +80,6 @@ function App() {
     });
     const [stateActiveCourse, setStateActiveCourse] = useState<string | null>(null);
     const [activeCourseData, setActiveCourseData] = useState<Course | null>(null);
-    const [ongoingLessionExercises, setOngoingLessionExercises] = useState<string[]>([]);
     
     const [audioExercisesEnabled, setAudioExercisesEnabled] = useLocalStorageState('audioExercisesEnabled', {
         defaultValue: true
@@ -111,7 +118,7 @@ function App() {
         }
         
         const freshResponse = await fetch(request);
-        if (!freshResponse.status === 200) {
+        if (freshResponse.status !== 200) {
             return freshResponse;
         }
         await cache.put(request, new Response(await freshResponse.arrayBuffer(), {
@@ -156,8 +163,28 @@ function App() {
     const progressForExercises = (lang: string, exerciseNames: string[]) => {
         return getProgressForExercises(knowledge, lang, exerciseNames);
     }
+    const statusForExercise: StatusForExercise = (to: string, conceptName: string) => {
+        const langKnowledge = knowledge[to] || {};
+        return statusForExerciseReact(langKnowledge, conceptName);
+    }
     
-    const showDynamicLesson = (lang: string, exercisePicklist: string[]) => {
+    const [ongoingLesson, setOngoingLesson] = useState<OngoingLesson | undefined>();
+    useEffect(() => {
+        if((hash==='lesson' || hash==='definition') && activeCourseData && ongoingLesson) {
+            const exercisePicklist = ongoingLesson.exerciseFilter(statusForExercise);
+            setOngoingLesson({
+                ...ongoingLesson,
+                progress: getProgressForExercises(knowledge, activeCourseData.to, exercisePicklist)
+            });
+        }
+    }, [hash, knowledge]);
+    
+    const showDynamicLesson = (lang: string, exerciseFilter: ExerciseFilter) => {
+        const exercisePicklist = exerciseFilter(statusForExercise);
+        if (exercisePicklist.length === 0) {
+            setHash('course');
+            return;
+        }
         const amountToShow = Math.min(10, exercisePicklist.length);
         const rankable = rankableExercises(knowledge[lang] ?? {}, exercisePicklist);
         const comparator = rankableExerciseComparator();
@@ -188,7 +215,12 @@ function App() {
         const fillers = ranked.splice(0, Math.min(amountToShow - picked.length, ranked.length)).map(r => r.id);
         picked.push(...fillers);
         picked.sort(() => Math.random() - 0.5);
-        setOngoingLessionExercises(picked);
+        setOngoingLesson({
+            exerciseFilter,
+            progress: getProgressForExercises(knowledge, lang, exercisePicklist),
+            batchId: new Date().getTime(),
+            batchExercises: picked
+        });
         setHash('lesson');
     };
     
@@ -219,23 +251,22 @@ function App() {
         }
         setKnowledge(knowledge);
     };
-    const showActiveCourseDetails = () => {
+    const onLessonDone = () => {
+        showDynamicLesson(activeCourseData.to, ongoingLesson.exerciseFilter);
+    };
+    const onAbort = () => {
         setHash('course');
     };
-    const statusForExercise = (to: string, conceptName: string) => {
-        const langKnowledge = knowledge[to] || {};
-        return statusForExerciseReact(langKnowledge, conceptName);
-    }
     
     if (loading) {
         return 'Loading…';
     } else if(hash==='course' && stateActiveCourse && activeCourseData) {
         const progress = getProgressForCourse(knowledge, activeCourseData);
         return <CourseDetails course={activeCourseData} progress={progress} onBackToCourseList={onBackToCourseList} getProgressForExercises={progressForExercises} statusForExercise={statusForExercise} showDynamicLesson={showDynamicLesson}/>
-    } else if((hash==='lesson' || hash==='definition') && activeCourseData) {
+    } else if((hash==='lesson' || hash==='definition') && activeCourseData && ongoingLesson) {
         return <AudioExercisesEnabledContext.Provider value={audioExercisesEnabled}>
             <CorrectAnswerConfirmationsEnabledContext.Provider value={correctAnswerConfirmationsEnabled}>
-                <LessonOngoing course={activeCourseData} exercises={ongoingLessionExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={showActiveCourseDetails} />
+                <LessonOngoing key={ongoingLesson.batchId} course={activeCourseData} exercises={ongoingLesson.batchExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={onLessonDone} onAbort={onAbort} ongoingLessonProgress={ongoingLesson.progress} />
             </CorrectAnswerConfirmationsEnabledContext.Provider>
         </AudioExercisesEnabledContext.Provider>;
     } else {

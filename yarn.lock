@@ -1879,6 +1879,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/css-modules@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@types/css-modules@npm:1.0.3"
+  checksum: 379a005fa11c2cba8452e72873b1a6bef6ee28757bf82d50c6825d8028afb7c8f1f0e3d307982baa794edf659fcafe37ba4b5557e0cd731c639f253f2d324738
+  languageName: node
+  linkType: hard
+
 "@types/estree@npm:0.0.39":
   version: 0.0.39
   resolution: "@types/estree@npm:0.0.39"
@@ -5220,6 +5227,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
+    "@types/css-modules": ^1.0.3
     "@types/react": ^18.2.21
     "@types/react-dom": ^18.2.7
     i18next: ^23.4.9
