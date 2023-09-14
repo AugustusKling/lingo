@@ -10,12 +10,11 @@ Example sentences are imported from [Tatoeba](https://tatoeba.org/). Excercises 
 
 You can find Tatoeba's sentenences and translations to various langages on https://tatoeba.org/en/downloads and integrate them using `build-tatoeba-course.mjs`.
 
-Steps to generate a course for a new language pair.
-1. Get sentences from https://downloads.tatoeba.org/exports/per_language/LANGUAGE_CODE/LANGUAGE_CODE_sentences_detailed.tsv.bz2 for source and target language (replace LANGUAGE_CODE with the respective language codes).
-2. Get sentence links for the two languages from https://downloads.tatoeba.org/exports/per_language/SOURCE_LANGUAGE_CODE/SOURCE_LANGUAGE_CODE-TARGET_LANGUAGE_CODE_links.tsv.bz2 (replace SOURCE_LANGUAGE_CODE and TARGET_LANGUAGE_CODE with the respective language codes).
-3. Get sentence links from English to the two languages from https://downloads.tatoeba.org/exports/per_language/eng/eng-LANGUAGE_CODE_links.tsv.bz2 (replace LANGUAGE_CODE with the respective language codes). This provides the grouping of sentences into lessons.
-4. Get sentence tags from https://downloads.tatoeba.org/exports/tags.tar.bz2 which also provides the grouping of sentences into lessons.
-5. Run course compiler: `node build-tatoeba-course.mjs SOURCE_LANGUAGE_CODE TARGET_LANGUAGE_CODE` (replace SOURCE_LANGUAGE_CODE and TARGET_LANGUAGE_CODE with the respective language codes)
+Run the course compiler to generate a course for a new language pair.
+
+`node build-tatoeba-course.mjs SOURCE_LANGUAGE_CODE TARGET_LANGUAGE_CODE` (replace SOURCE_LANGUAGE_CODE and TARGET_LANGUAGE_CODE with the respective ISO-639-3 language codes)
+
+Then run `yarn build` to create a static website containing the new course.
 
 Exercises will only be shown for sentences that are linked as direct translations of each other.
 
