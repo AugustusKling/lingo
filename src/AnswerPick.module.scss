@@ -11,6 +11,11 @@
         outline: 1px solid green;
         font-weight: bold;
     }
+    
+    .answerText {
+        display: flex;
+        flex-direction: column;
+    }
 }
 @media(hover: hover) {
     .pickAnswer .answer:hover {

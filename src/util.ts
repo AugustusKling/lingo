@@ -14,6 +14,7 @@ export interface Course {
     sentences: Record<string, Translation[]>;
     /** Sentence id (from lang) to sentence ids (to lang) */
     links: [string, string][];
+    ipaTranscriptions?: Record<string, string>;
 }
 export interface Lesson {
     title: Record<string, string>;
@@ -221,4 +222,37 @@ export function segmentToWords(text: string, language: string): { segment: strin
         });
     }
     return segments;
+}
+
+export function transcribeIPA(course: Course, text: string, language: string): string | undefined {
+    if (!course.ipaTranscriptions || course.to !== language) {
+        return undefined;
+    }
+    
+    let result = ' ';
+    for(const segment of segmentToWords(text, language)) {
+        if (segment.isWordLike) {
+            const transcription = course.ipaTranscriptions[segment.segment];
+            if (!transcription) {
+                return undefined;
+            }
+            result = result + ' ' + transcription;
+        }
+    }
+    return result.trim();
+}
+
+export function cssClasses(...maybeClassNames: (string | false | Record<string, boolean>)[]): string {
+    return maybeClassNames.reduce<string>((prev, current) => {
+        let toAdd: string;
+        if (current==false){
+            return prev;
+        } else if(typeof current === 'string') {
+            toAdd = current;
+        } else {
+            const maybeClassNamesArray = Object.entries(current).map(([className, enabled]) => enabled && className);
+            toAdd = cssClasses(...maybeClassNamesArray);
+        }
+        return prev==='' ? toAdd : `${prev} ${toAdd}`;
+    }, '');
 }

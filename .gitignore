@@ -1,5 +1,5 @@
 node_modules/
-tatoeba-downloads/
+cache/
 .pnp.*
 .yarn/*
 !.yarn/patches

@@ -36,6 +36,8 @@
     user-select: none;
     min-width: 1rem;
     text-align: center;
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes highlightSuggestion {

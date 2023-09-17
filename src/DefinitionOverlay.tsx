@@ -1,5 +1,6 @@
-import { getVoices, speak, Translation, Course } from './util.js';
+import { getVoices, speak, Translation, Course, transcribeIPA } from './util.js';
 import styles from './DefinitionOverlay.module.scss';
+import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
 
 const licenseNames: Partial<Record<string, string>> = {
@@ -25,10 +26,12 @@ export function DefinitionOverlay({exercise, course, onBackToExercise}: Definiti
         const voices = getVoices(lang);
         const hasVoices = voices.length > 0;
 
-        return [<h2 key={lang+'-header'}>Translations</h2>, ...translations.map(translation =>
-            <div key={translation.id}>
+        return [<h2 key={lang+'-header'}>Translations</h2>, ...translations.map(translation => {
+            const ipaTranscription = lang===course.to && transcribeIPA(course, translation.text, course.to);
+            return <div key={translation.id}>
                 <div className={styles.translation}>
                     <h3>{translation.text}</h3>
+                    { ipaTranscription && <p className={stylesText.ipa}>{ ipaTranscription }</p> }
                     { translation.source && <Source translation={translation} /> }
                     { translation.licence && <Licence translation={translation} /> }
                     <div className={styles.buttonContainer}>
@@ -36,15 +39,17 @@ export function DefinitionOverlay({exercise, course, onBackToExercise}: Definiti
                         { hasVoices && <button onClick={() => speak(translation.text, voices)}>{ t('DefinitionOverlay.speak') }</button> }
                     </div>
                 </div>
-            </div>
-        )];
+            </div>;
+        })];
     }
 
     const langExercise = sentenceIdSourceLanguage ? course.from : course.to;
     const voicesExercise = getVoices(langExercise);
+    const ipaTranscription = langExercise===course.to && transcribeIPA(course, exercise.text, course.to);
     return <div className={styles.definitionOverlay} style={{display:'flex'}}>
         <button className={styles.buttonBack} onClick={() => onBackToExercise?.()}>{ t('DefinitionOverlay.backToExercise') }</button>
         <h1 className={styles.title}>{exercise.text}</h1>
+        { ipaTranscription && <p className={stylesText.ipa}>{ ipaTranscription }</p> }
         <Source translation={exercise} />
         <Licence translation={exercise} />
         <div className={styles.buttonContainer}>

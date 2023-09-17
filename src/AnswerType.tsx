@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords } from './util.js';
 import styles from './AnswerType.module.scss';
+import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
 
 interface AnswerTypeProps {
@@ -73,7 +74,10 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
         </div>
         <div className={styles.wordSuggestions} onAnimationEnd={removeAnimation}>{
             wordSuggestions.map(suggestion => {
-                return <p className={styles.wordSuggestion} onClick={e => addSuggestion(e, suggestion)} key={suggestion}>{suggestion}</p>;
+                return <p className={styles.wordSuggestion} onClick={e => addSuggestion(e, suggestion)} key={suggestion}>
+                    <span>{suggestion}</span>
+                    { course.ipaTranscriptions && course.ipaTranscriptions[suggestion] && <span className={stylesText.ipa}>{course.ipaTranscriptions[suggestion]}</span> }
+                </p>;
             })
         }</div>
     </div>;

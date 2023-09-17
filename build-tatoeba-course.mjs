@@ -4,7 +4,7 @@ import { open, mkdir, stat, rm } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { Readable } from 'node:stream';
 import { finished } from 'node:stream/promises';
-import { execSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 
 const [nodeExecutable, scriptName, fromLanguage, toLanguage] = process.argv;
 
@@ -19,7 +19,7 @@ async function getTatoebaFile(path) {
     const url = new URL('https://downloads.tatoeba.org/');
     url.pathname = path;
     
-    const targetFile = './tatoeba-downloads' + path;
+    const targetFile = './cache/tatoeba-downloads' + path;
     const targetFileExtracted =  targetFile.replace(/\.tsv\.bz2$/, '.tsv');
     const folderPath = dirname(targetFileExtracted);
     await mkdir(folderPath, { recursive: true });
@@ -87,6 +87,60 @@ function toCourseSentence(translationDetail) {
         source: 'https://tatoeba.org/en/sentences/show/' + translationDetail.ref,
         licence: 'https://creativecommons.org/licenses/by/2.0/fr/'
     };
+}
+
+const espeakLanguages = {
+    swe: 'sv',
+    spa: 'es',
+    rus: 'ru'
+};
+const openIpaDictionaries = {};
+const toLanguageWordSegmenter = new Intl.Segmenter(toLanguage, { granularity: "word" });
+let ipaTranscriptionCalls = 0;
+function toIPA(ipaDict, language, text) {
+    const espeakLanguage = espeakLanguages[language];
+    if (!espeakLanguage) {
+        return;
+    }
+    if (!openIpaDictionaries[language]) {
+        const dictPath = `./cache/ipa/${language}.json`;
+        if(fs.existsSync(dictPath)) {
+            openIpaDictionaries[language] = JSON.parse(fs.readFileSync(dictPath, 'utf8'));
+        } else {
+            openIpaDictionaries[language] = {};
+        }
+    }
+    for(const segment of toLanguageWordSegmenter.segment(text)) {
+        if(segment.isWordLike) {
+            const word = segment.segment;
+            if (ipaDict[word]) {
+                continue;
+            }
+            const cachedTranscription = openIpaDictionaries[language][word];
+            if (cachedTranscription) {
+                ipaDict[word] = cachedTranscription;
+                continue;
+            }
+            
+            ipaTranscriptionCalls = ipaTranscriptionCalls + 1;
+            if (ipaTranscriptionCalls % 100 === 0) {
+                for(const language in openIpaDictionaries) {
+                    const dictPath = `./cache/ipa/${language}.json`;
+                    fs.writeFileSync(dictPath, JSON.stringify(openIpaDictionaries[language]));
+                }
+            }
+            
+            const result = spawnSync('espeak-ng', [word, '--ipa=2', '-v', espeakLanguage, '-q'], {
+                encoding: 'utf-8'
+            });
+            if (result.error) {
+                console.warn(`Failed IPA transcription for ${word}`, result.error);
+            } else {
+                ipaDict[word] = result.stdout.replaceAll(/\s/g, '');
+                openIpaDictionaries[language][word] = ipaDict[word];
+            }
+        }
+    }
 }
 
 const detailColumnNames = ['ref', 'lang', 'sentence', 'author', 'added', 'modified'];
@@ -175,10 +229,12 @@ const course = {
         [toLanguage]: []
     },
     // from -> to
-    links: []
+    links: [],
+    ipaTranscriptions: {}
 };
 const addedSentences = new Set();
 
+console.log(`Merging sentences into course.`);
 for(const {fromId, toId} of links) {
     const fromTranslationDetail = fromTranslationsByRef.get(fromId);
     const toTranslationDetail = toTranslationsByRef.get(toId);
@@ -193,6 +249,7 @@ for(const {fromId, toId} of links) {
     }
     if (!addedSentences.has(toId)) {
         course.sentences[toLanguage].push(toCourseSentence(toTranslationDetail));
+        toIPA(course.ipaTranscriptions, toLanguage, toTranslationDetail.sentence);
         addedSentences.add(toId);
     }
 }
@@ -246,3 +303,8 @@ courseIndex[`${fromLanguage} to ${toLanguage}`] = {
     buildTime: new Date().toISOString()
 };
 fs.writeFileSync(courseIndexFile, JSON.stringify(courseIndex));
+
+for(const language in openIpaDictionaries) {
+    const dictPath = `./cache/ipa/${language}.json`;
+    fs.writeFileSync(dictPath, JSON.stringify(openIpaDictionaries[language]));
+}

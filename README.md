@@ -16,7 +16,7 @@ Run the course compiler to generate a course for a new language pair.
 
 Then run `yarn build` to create a static website containing the new course.
 
-Exercises will only be shown for sentences that are linked as direct translations of each other.
+Exercises will only be shown for sentences that are linked as direct translations of each other. IPA transcription is generated using espeak-ng for target languages where a mapping of language to espeak-ng voice is known.
 
 ## Lesson format
 ```yml

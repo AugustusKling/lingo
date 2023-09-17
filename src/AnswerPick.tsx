@@ -1,6 +1,7 @@
 import { useState, useMemo, MouseEvent } from 'react';
-import { pickRandom, findWrongAnswers, speak, Course, Translation } from './util.js';
+import { pickRandom, findWrongAnswers, speak, Course, Translation, transcribeIPA, cssClasses } from './util.js';
 import styles from './AnswerPick.module.scss';
+import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
 
 interface AnswerPickProps {
@@ -46,7 +47,8 @@ export function AnswerPick({course, currentExercise, currentAnswer, onSelect, on
     const renderAnswerOptions = () => {
         return answerOptions.map((answerOption, index) => {
             const infoButton = <button className={styles.buttonDefinition} onClick={e => showDefinition(answerOption, e)}>{ t('AnswerPick.info') }</button>;
-            const answerClasses = currentAnswer===answerOption.text ? `${styles.answer} ${styles.selected}` : styles.answer;
+            const answerClasses = cssClasses(styles.answer, currentAnswer===answerOption.text && styles.selected);
+            const ipaTranscription = transcribeIPA(course, answerOption.text, course.to);
             if (acousticPick) {
                 return <p className={answerClasses} onClick={() => onSelect(answerOption.text)} key={index}>
                     <button onClick={() => speakAndSelect(answerOption) }>{ t('AnswerPick.speak') }</button>
@@ -54,7 +56,10 @@ export function AnswerPick({course, currentExercise, currentAnswer, onSelect, on
                 </p>;
             } else {
                 return <p className={answerClasses} onClick={() => onConfirm(answerOption.text)} key={index}>
-                    { answerOption.text }
+                    <div className={styles.answerText}>
+                        <span>{ answerOption.text }</span>
+                        { ipaTranscription && <span className={stylesText.ipa}>{ ipaTranscription }</span> }
+                    </div>
                     { infoButton }
                 </p>;
             }            
