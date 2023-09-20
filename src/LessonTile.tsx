@@ -1,6 +1,6 @@
-import {Progress, ProgressInfo} from './Progress.js';
+import {Progress} from './Progress.js';
 import styles from './LessonTile.module.scss';
-import {Course, Lesson} from './util.js';
+import {Course, Lesson, RankableExercise} from './util.js';
 import { useTranslation } from "react-i18next";
 
 interface LessonTileProps {
@@ -9,7 +9,7 @@ interface LessonTileProps {
     title: string;
     exerciseCount: number;
     onExercisesSelected: () => void;
-    progress: ProgressInfo
+    progress: RankableExercise[];
 }
 
 export function LessonTile({course, lesson, title, exerciseCount, onExercisesSelected, progress}: LessonTileProps) {

@@ -50,18 +50,18 @@ export function AnswerPick({course, currentExercise, currentAnswer, onSelect, on
             const answerClasses = cssClasses(styles.answer, currentAnswer===answerOption.text && styles.selected);
             const ipaTranscription = transcribeIPA(course, answerOption.text, course.to);
             if (acousticPick) {
-                return <p className={answerClasses} onClick={() => onSelect(answerOption.text)} key={index}>
+                return <div className={answerClasses} onClick={() => onSelect(answerOption.text)} key={index}>
                     <button onClick={() => speakAndSelect(answerOption) }>{ t('AnswerPick.speak') }</button>
                     { infoButton }
-                </p>;
+                </div>;
             } else {
-                return <p className={answerClasses} onClick={() => onConfirm(answerOption.text)} key={index}>
+                return <div className={answerClasses} onClick={() => onConfirm(answerOption.text)} key={index}>
                     <div className={styles.answerText}>
                         <span>{ answerOption.text }</span>
                         { ipaTranscription && <span className={stylesText.ipa}>{ ipaTranscription }</span> }
                     </div>
                     { infoButton }
-                </p>;
+                </div>;
             }            
         });
     };

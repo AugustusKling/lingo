@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useContext } from 'react';
-import { pickRandom, Course, Translation, getVoices, speak, segmentToWords } from './util.js';
+import { pickRandom, Course, Translation, getVoices, speak, segmentToWords, RankableExercise } from './util.js';
 import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
@@ -7,7 +7,7 @@ import styles from './LessonOngoing.module.scss';
 import {diffStringsRaw, DIFF_EQUAL, DIFF_DELETE, DIFF_INSERT} from 'jest-diff';
 import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 import { useTranslation } from "react-i18next";
-import { Progress, ProgressInfo } from './Progress.js';
+import { Progress } from './Progress.js';
 
 export interface LessonOngoingProps {
     course: Course;
@@ -15,7 +15,7 @@ export interface LessonOngoingProps {
     onLessonDone?: () => void;
     onAbort?: () => void;
     onExerciseConfirmed: (_: {course: Course, exercise: Translation, answerCorrect: boolean}) => void;
-    ongoingLessonProgress: ProgressInfo;
+    ongoingLessonProgress: RankableExercise[];
 }
 
 function doAnswersMatch(a: string, b: string, language: string): boolean {

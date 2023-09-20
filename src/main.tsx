@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import useLocalStorageState from 'use-local-storage-state'
 import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
-import { pickRandom, speak, getProgressForCourse, getProgressForExercises, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises, rankableExerciseComparator, RankableExercise, StatusForExercise, ExerciseFilter } from './util.js';
+import { pickRandom, speak, getProgressForCourse, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises, rankableExerciseComparator, RankableExercise, StatusForExercise, ExerciseFilter } from './util.js';
 import { CourseList} from './CourseList.js';
 import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 import i18n from "i18next";
@@ -12,11 +12,10 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import ICU from "i18next-icu";
 import en from './locales/en/translation.json';
 import de from './locales/de/translation.json';
-import { ProgressInfo } from './Progress.js';
 
 interface OngoingLesson {
     exerciseFilter: ExerciseFilter;
-    progress: ProgressInfo;
+    progress: RankableExercise[];
     batchId: number;
     batchExercises: string[];
 }
@@ -161,7 +160,7 @@ function App() {
         setHash('');
     };
     const progressForExercises = (lang: string, exerciseNames: string[]) => {
-        return getProgressForExercises(knowledge, lang, exerciseNames);
+        return rankableExercises(knowledge[lang] ?? {}, exerciseNames);
     }
     const statusForExercise: StatusForExercise = (to: string, conceptName: string) => {
         const langKnowledge = knowledge[to] || {};
@@ -174,7 +173,7 @@ function App() {
             const exercisePicklist = ongoingLesson.exerciseFilter(statusForExercise);
             setOngoingLesson({
                 ...ongoingLesson,
-                progress: getProgressForExercises(knowledge, activeCourseData.to, exercisePicklist)
+                progress: progressForExercises(activeCourseData.to, exercisePicklist)
             });
         }
     }, [hash, knowledge]);
@@ -217,7 +216,7 @@ function App() {
         picked.sort(() => Math.random() - 0.5);
         setOngoingLesson({
             exerciseFilter,
-            progress: getProgressForExercises(knowledge, lang, exercisePicklist),
+            progress: progressForExercises(lang, exercisePicklist),
             batchId: new Date().getTime(),
             batchExercises: picked
         });

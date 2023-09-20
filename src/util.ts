@@ -113,20 +113,7 @@ export function speak(text: string, voices: SpeechSynthesisVoice[]): void {
 
 export function getProgressForCourse(knowledge: Knowledge, course: Course) {
     const exerciseNames = course.sentences[course.to].map(translation => translation.id);
-    return getProgressForExercises(knowledge, course.to, exerciseNames);
-}
-export function getProgressForExercises(knowledge: Knowledge, to: string, exerciseNames: string[]) {
-    const langKnowledge = knowledge[to] || {};
-    const exerciseStatus = exerciseNames.map(exerciseName => statusForExerciseReact(langKnowledge, exerciseName));
-    const statusWrong = exerciseStatus.filter(status => status === 'wrong').length;
-    const statusSomewhat = exerciseStatus.filter(status => status === 'somewhat').length;
-    const statusLearned = exerciseStatus.filter(status => status === 'learned').length;
-    return {
-        wrong: statusWrong,
-        somewhat: statusSomewhat,
-        learned: statusLearned,
-        unseen: exerciseNames.length - statusWrong - statusSomewhat - statusLearned
-    };
+    return rankableExercises(knowledge[course.to] ?? {}, exerciseNames);
 }
 export function statusForExerciseReact(langKnowledge: LangKnowledge, exerciseName: string): ExerciseStatus {
     const knowledge: ExerciseKnowledge = langKnowledge[exerciseName];
@@ -140,16 +127,6 @@ export function statusForExerciseReact(langKnowledge: LangKnowledge, exerciseNam
         return "wrong";
     }
     return "somewhat";
-}
-
-export function byStatus(langKnowledge: LangKnowledge, exercises: string[]): Record<ExerciseStatus, string[]> {
-    const grouped = group(exercises, e => statusForExerciseReact(langKnowledge, e));
-    return Object.assign({
-        unseen: [],
-        wrong: [],
-        somewhat: [],
-        learned: [],
-    }, grouped);
 }
 
 export function rankableExercises(langKnowledge: LangKnowledge, exercises: string[]): RankableExercise[] {

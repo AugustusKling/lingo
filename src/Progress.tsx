@@ -1,21 +1,41 @@
 import styles from './Progress.module.scss';
+import { RankableExercise } from './util.js';
 
-export interface ProgressInfo {
-    wrong: number;
-    somewhat: number;
-    learned: number;
-    unseen: number;
+function blend(start: number, end: number, ratio: number): number {
+    const gamma = 2.2;
+    return Math.pow((1 - ratio) * Math.pow(start, gamma) + ratio * Math.pow(end, gamma), 1/gamma);
 }
 
+function makeColorBank(): string[] {
+    const start = [220, 0, 0];
+    const end = [34, 200, 0];
+    const steps = 21;
+    const stepSize = 1 / steps;
+    const colors: string[] = [];
+    for(let step = 0; step<steps; step++) {
+        const ratio = step * stepSize;
+        colors.push(`rgb(${blend(start[0], end[0], ratio)}, ${blend(start[1], end[1], ratio)}, ${blend(start[2], end[2], ratio)})`);
+    }
+    return colors;
+}
+const colorBank = makeColorBank();
+
 interface Props {
-    progress: ProgressInfo;
+    progress: RankableExercise[];
 }
 
 export function Progress({ progress }: Props) {
-    return <div className={ styles.progress }>
-        <div className={ styles.wrong } style={ {flex: progress.wrong} }></div>
-        <div className={ styles.somewhat } style={ {flex: progress.somewhat} }></div>
-        <div className={ styles.learned } style={ {flex: progress.learned} }></div>
-        <div className={ styles.unseen } style={ {flex: progress.unseen} }></div>
-    </div>;
+    const buckets = colorBank.map(() => 0);
+    for(const exercise of progress) {
+        const bucketIndex = exercise.rank + 10;
+        buckets[bucketIndex] = buckets[bucketIndex] + 1;
+    }
+    const maxAmount = buckets.reduce((a, b) => Math.max(a, b));
+    
+    return <div className={ styles.progress }>{
+        buckets.map((amount, bucketIndex) => {
+            const opacity = maxAmount === 0 ? 0 : Math.log(1+amount)/Math.log(1+maxAmount);
+            return <div key={bucketIndex} style={ {flex: 1, backgroundColor: colorBank[bucketIndex], opacity } }></div>;
+        })
+    }</div>;
 }

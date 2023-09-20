@@ -2,35 +2,11 @@
     height: 0.5rem;
     display: flex;
     border: 1px solid darkgray;
-
-    > .wrong {
-        background: red;
-    }
-
-    > .somewhat {
-        background: orange;
-    }
-
-    > .learned {
-        background: green;
-    }
-
-    > .unseen {
-        background: white;
-    }
+    background: white;
 }
 
 @media (prefers-color-scheme: dark) {
-    .progress > .wrong {
-        background: darkred;
-    }
-    .progress > .somewhat {
-        background: darkorange;
-    }
-    .progress > .learned {
-        background: darkgreen;
-    }
-    .progress > .unseen {
-        background: darkgray;
+    .progress {
+        background: black;
     }
 }

@@ -1,14 +1,14 @@
-import { Progress, ProgressInfo } from './Progress.js';
+import { Progress } from './Progress.js';
 import { LessonTile } from './LessonTile.js';
 import styles from './CourseDetails.module.scss';
-import { Course, ExerciseStatus, ExerciseFilter, StatusForExercise } from './util.js';
+import { Course, ExerciseStatus, ExerciseFilter, StatusForExercise, RankableExercise, Translation } from './util.js';
 import { useTranslation } from "react-i18next";
 
 interface CourseDetailsProps {
     course: Course;
-    progress: ProgressInfo;
+    progress: RankableExercise[];
     onBackToCourseList?: () => void;
-    getProgressForExercises: (lang: string, exercises: string[]) => ProgressInfo;
+    getProgressForExercises: (lang: string, exercises: string[]) => RankableExercise[];
     statusForExercise: StatusForExercise;
     showDynamicLesson: (lang: string, exerciseFilter: ExerciseFilter) => void;
 }
@@ -37,7 +37,7 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
                 length: sentence.text.split(' ').length
             };
         }).sort((a, b) => a.length - b.length);
-        const dynamic = {
+        const dynamic: Record<string, (s: StatusForExercise) => Translation[]> = {
             [t('CourseDetails.dynamic.Training')]: statusForExercise => course.sentences[course.to].filter(sentence => ['wrong', 'somewhat'].includes(statusForExercise(course.to, sentence.id))),
             [t('CourseDetails.dynamic.Short')]: statusForExercise => byLength.slice(0, 100).map(wrapper => wrapper.sentence),
             [t('CourseDetails.dynamic.fewWords')]: statusForExercise => byWordCount.slice(0, 100).map(wrapper => wrapper.sentence),
