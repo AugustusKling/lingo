@@ -57,8 +57,11 @@ async function getTatoebaFile(path) {
     }
 }
 
-async function readTsv(tatoebaPath, headers) {
-    const file = await open(await getTatoebaFile(tatoebaPath));
+async function readTatoebaTsv(tatoebaPath, headers) {
+    return readTsv(await getTatoebaFile(tatoebaPath), headers);
+}
+async function readTsv(localPath, headers) {
+    const file = await open(localPath);
 
     const lines = [];
     for await (const line of file.readLines()) {
@@ -149,14 +152,14 @@ console.log(`Building course ${fromLanguage} to ${toLanguage}`);
 
 
 console.log('Reading sentences for ' + fromLanguage);
-const fromTranslations = await readTsv(`/exports/per_language/${fromLanguage}/${fromLanguage}_sentences_detailed.tsv.bz2`, detailColumnNames);
+const fromTranslations = await readTatoebaTsv(`/exports/per_language/${fromLanguage}/${fromLanguage}_sentences_detailed.tsv.bz2`, detailColumnNames);
 const fromTranslationsByRef = byRef(fromTranslations);
 console.log('Reading sentences for ' + toLanguage);
-const toTranslations = await readTsv(`/exports/per_language/${toLanguage}/${toLanguage}_sentences_detailed.tsv.bz2`, detailColumnNames);
+const toTranslations = await readTatoebaTsv(`/exports/per_language/${toLanguage}/${toLanguage}_sentences_detailed.tsv.bz2`, detailColumnNames);
 const toTranslationsByRef = byRef(toTranslations);
 
 console.log('Reading links');
-let links = await readTsv(`/exports/per_language/${fromLanguage}/${fromLanguage}-${toLanguage}_links.tsv.bz2`, ['fromId', 'toId']);
+let links = await readTatoebaTsv(`/exports/per_language/${fromLanguage}/${fromLanguage}-${toLanguage}_links.tsv.bz2`, ['fromId', 'toId']);
 console.log(links.length + ' sentence links found');
 
 
@@ -168,6 +171,20 @@ for(const lessonName of lessonNames) {
         if (!doc.title[fromLanguage] && !doc.title[toLanguage]) {
             console.log(`Failed to read ${lessonName}. It has no title.`);
         }
+        if(!doc.exercises) {
+            doc.exercises = [];
+        }
+        if (doc.lists) {
+            for(const list of doc.lists) {
+                let listItems = await readTsv(`./cache/tatoeba-lists/${list}.tsv`, ['sentenceId']);
+                for(const listItem of listItems) {
+                    if(!doc.exercises.includes(listItem.sentenceId)) {
+                        doc.exercises.push(listItem.sentenceId);
+                    }
+                }
+            }
+            delete doc.lists;
+        }
         lessons.push({...doc, name: lessonName});
     } catch (e) {
         console.log('Failed to read ' + lessonName, e);
@@ -178,7 +195,7 @@ const expansionFiles = [`/exports/per_language/eng/eng-${fromLanguage}_links.tsv
 console.log(`Loading exercise expansions ${expansionFiles}.`);
 const expansions = {};
 for(const expansionFileName of expansionFiles) {
-    const expansionPairs = await readTsv(expansionFileName, ['engId', 'fromOrToId']);
+    const expansionPairs = await readTatoebaTsv(expansionFileName, ['engId', 'fromOrToId']);
     for(const {engId, fromOrToId} of expansionPairs) {
         if (!expansions[engId]) {
             expansions[engId] = [fromOrToId];
@@ -190,7 +207,7 @@ for(const expansionFileName of expansionFiles) {
 
 console.log(`Loading tags`);
 const usedTags = lessons.flatMap(lesson => lesson.exerciseTags || []);
-const sentenceAndTag = await readTsv('/exports/tags.csv', ['sentenceId', 'tag']);
+const sentenceAndTag = await readTatoebaTsv('/exports/tags.csv', ['sentenceId', 'tag']);
 const tagsToSentenceIds = {};
 const taggedSentenceIds = new Set();
 for(const {sentenceId, tag} of sentenceAndTag) {
