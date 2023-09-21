@@ -9,7 +9,7 @@ function blend(start: number, end: number, ratio: number): number {
 function makeColorBank(): string[] {
     const start = [220, 0, 0];
     const end = [34, 200, 0];
-    const steps = 21;
+    const steps = 11;
     const stepSize = 1 / steps;
     const colors: string[] = [];
     for(let step = 0; step<steps; step++) {
@@ -27,7 +27,7 @@ interface Props {
 export function Progress({ progress }: Props) {
     const buckets = colorBank.map(() => 0);
     for(const exercise of progress) {
-        const bucketIndex = exercise.rank + 10;
+        const bucketIndex = Math.max(0, exercise.rank);
         buckets[bucketIndex] = buckets[bucketIndex] + 1;
     }
     const maxAmount = buckets.reduce((a, b) => Math.max(a, b));
