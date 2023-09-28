@@ -92,6 +92,45 @@ function toCourseSentence(translationDetail) {
     };
 }
 
+async function downloadList(listId, pageNumber) {
+    if (pageNumber>10) {
+        throw new Error(`Download of list ${listId} has unexpectedly many pages.`);
+    }
+    console.log(`Downloading list ${listId}, page number ${pageNumber}`);
+    const sentenceIds = [];
+    const response = await fetch(`https://tatoeba.org/en/api_v0/search?list=${listId}&sort=created&sort_reverse=yes&to=none&page=${pageNumber}`, {
+        "headers": {
+            "Accept": "application/json"
+        },
+        "method": "GET"
+    });
+    const page = await response.json();
+    for(const sentence of page.results) {
+        sentenceIds.push(String(sentence.id));
+    }
+    if (page.paging.Sentences.nextPage) {
+        sentenceIds.push(... await downloadList(listId, pageNumber + 1));
+    }
+    return sentenceIds;
+}
+async function getList(listId) {
+    const cacheFilePath = `./cache/tatoeba-lists/${listId}.json`;
+    let cacheLastModified = new Date(0);
+    try {
+        cacheLastModified = (await stat(cacheFilePath)).mtime;
+    } catch {
+        console.log(`${cacheFilePath} was not download before`);
+    }
+    const maxValidityMilliseconds = 1000 * 60 * 60 * 24;
+    if (cacheLastModified.getTime() + maxValidityMilliseconds > Date.now()) {
+        return JSON.parse(fs.readFileSync(cacheFilePath, 'utf8'));
+    } else {
+        const sentenceIds = await downloadList(listId, 1);
+        fs.writeFileSync(cacheFilePath, JSON.stringify(sentenceIds));
+        return sentenceIds;
+    }
+}
+
 const espeakLanguages = {
     swe: 'sv',
     spa: 'es',
@@ -176,10 +215,9 @@ for(const lessonName of lessonNames) {
         }
         if (doc.lists) {
             for(const list of doc.lists) {
-                let listItems = await readTsv(`./cache/tatoeba-lists/${list}.tsv`, ['sentenceId']);
-                for(const listItem of listItems) {
-                    if(!doc.exercises.includes(listItem.sentenceId)) {
-                        doc.exercises.push(listItem.sentenceId);
+                for(const sentenceId of await getList(list)) {
+                    if(!doc.exercises.includes(sentenceId)) {
+                        doc.exercises.push(sentenceId);
                     }
                 }
             }
