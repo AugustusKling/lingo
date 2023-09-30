@@ -1,0 +1,9 @@
+order: 6
+title:
+ eng: "Home"
+ deu: "Haushalt"
+ swe: "Hushåll"
+
+lists:
+  # Lingo Lesson: Home
+  - 171788
