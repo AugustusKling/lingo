@@ -45,6 +45,9 @@ exerciseTags:
   - fruit
   - cooking
 
+# Sentences making up the lesson given by Tatoeba list id.
+lists:
+  - 171778
 ```
 
 The course compiler ignores sentences from lessons if it cannot relate them to your source and target languages. Lessons with no remaining sentences are excluded.
