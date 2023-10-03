@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from 'react';
+
 interface ExerciseKnowledge {
     lastAnswersCorrect: boolean[];
     hiddenUntil: number;
@@ -97,18 +99,51 @@ export function findWrongAnswers(exercise: Translation, amount: number, course: 
     return wrong;
 }
 
-export function getVoices(language: string): SpeechSynthesisVoice[] {
+const voicesForLang: Record<string, SpeechSynthesisVoice[]> = {};
+// Trigger initialization of voices.
+speechSynthesis.getVoices();
+export function useVoices(language: string): SpeechSynthesisVoice[] {
     const prefix = Intl.getCanonicalLocales(language)[0];
+ 
+    return useSyncExternalStore(updateVoices => {
+        const updateFilteredVoices = () => {
+            delete voicesForLang[prefix];
+            updateVoices();
+        };
+        speechSynthesis.addEventListener('voiceschanged', updateFilteredVoices);
+        return () => {
+            speechSynthesis.removeEventListener('voiceschanged', updateFilteredVoices);
+        };
+    }, () => {
+        if (!voicesForLang[prefix]) {
+            voicesForLang[prefix] = getFilteredVoices(prefix);
+        }
+        return voicesForLang[prefix];
+    });
+}
+
+function getFilteredVoices(prefix: string): SpeechSynthesisVoice[] {
     return speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(prefix));
 }
 
-export function speak(text: string, voices: SpeechSynthesisVoice[]): void {
+export function speak(text: string, voices: SpeechSynthesisVoice[]): Promise<boolean> {
+    speechSynthesis.cancel();
+    return speakContinue(text, pickRandom(voices));
+}
+export function speakContinue(text: string, voice: SpeechSynthesisVoice): Promise<boolean> {
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = pickRandom(voices);
+    utterance.voice = voice;
     // Workaround for Chrome bug not respecting voice's language.
     utterance.lang = utterance.voice.lang;
-    speechSynthesis.cancel();
-    speechSynthesis.speak(utterance);
+    return new Promise((resolve, reject) => {
+        utterance.addEventListener('end', () => resolve(true), {
+            once: true
+        });
+        utterance.addEventListener('error', () => resolve(false), {
+            once: true
+        });
+        speechSynthesis.speak(utterance);
+    });
 }
 
 export function getProgressForCourse(knowledge: Knowledge, course: Course) {

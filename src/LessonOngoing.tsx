@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useContext } from 'react';
-import { pickRandom, Course, Translation, getVoices, speak, segmentToWords, RankableExercise } from './util.js';
+import { pickRandom, Course, Translation, useVoices, speak, segmentToWords, RankableExercise } from './util.js';
 import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
@@ -29,10 +29,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     const [remainingExercises, setRemainingExercises] = useState(exercises);
     const currentExercise = course.sentences[course.to].find(sentence => sentence.id === remainingExercises[0]);
     const questionHint = '';
-    const voices = useMemo(
-        () => getVoices(course.to),
-        [course]
-    );
+    const voices = useVoices(course.to);
     const audioExercisesEnabled = useContext(AudioExercisesEnabledContext);
     const speakAnswerAsQuestionMode = useMemo(
         () => audioExercisesEnabled && voices.length > 0 && Math.random() < 0.3,
@@ -57,6 +54,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     const [correctAnswerHintVisible, setCorrectAnswerHintVisible] = useState(false);
     const correctAnswerConfirmationsEnabled = useContext(CorrectAnswerConfirmationsEnabledContext);
     const [correctAnswerConfirmationVisible, setCorrectAnswerConfirmationVisible] = useState(false);
+    const [answerConfirmed, setAnswerConfirmed] = useState(false);
     
     type DefinitionOverlayData = {visible: false; exercise: null; course: null;} | {visible: true; exercise: Translation; course: Course;};
     const [definitionOverlayData, setDefinitionOverlayData] = useState<DefinitionOverlayData>({
@@ -97,6 +95,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     const showNextExcercise = () => {
         setCorrectAnswerHintVisible(false);
         setCorrectAnswerConfirmationVisible(false);
+        setAnswerConfirmed(false);
         speechSynthesis.cancel();
         if(remainingExercises.length === 1) {
             onLessonDone?.();
@@ -114,8 +113,9 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
         setCurrentAnswer(answerText);
         if (correctAnswerHintVisible || correctAnswerConfirmationVisible) {
             showNextExcercise();
-        } else {
+        } else if(!answerConfirmed) {
             const answerCorrect = acceptedAnswers.some(correctOption => doAnswersMatch(correctOption.text, answerText, course.to));
+            setAnswerConfirmed(true);
             onExerciseConfirmed({
                 course,
                 exercise: currentExercise,
@@ -124,11 +124,25 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
             
             if (!answerCorrect) {
                 setCorrectAnswerHintVisible(true);
+                if (audioExercisesEnabled && voices.length>0) {
+                    speak(currentExercise.text, voices);
+                }
             } else if (correctAnswerConfirmationsEnabled) {
                 setCorrectAnswerConfirmationVisible(true);
+                if (audioExercisesEnabled && voices.length>0) {
+                    speak(currentExercise.text, voices);
+                }
+            } else if (audioExercisesEnabled && voices.length>0) {
+                speak(currentExercise.text, voices).then(playedToEnd => {
+                    if (playedToEnd) {
+                        showNextExcercise()
+                    }
+                });
             } else {
                 showNextExcercise();
             }
+        } else {
+            showNextExcercise();
         }
     };
     
@@ -150,7 +164,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
                 speakAnswerAsQuestionMode ? t('LessonOngoing.typeHeard') : t('LessonOngoing.typeTranslation')
             } />;
         } else {
-            return <AnswerPick course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onSelect={setCurrentAnswer} onConfirm={confirm} onShowDefinition={showDefinitionOverlay} voices={voices} acousticPick={acousticPick} hint={
+            return <AnswerPick course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onSelect={setCurrentAnswer} onConfirm={confirm} onShowDefinition={showDefinitionOverlay} acousticPick={acousticPick} hint={
                 speakAnswerAsQuestionMode ? t('LessonOngoing.pickHeard') : t('LessonOngoing.pickTranslation')
             } />;
         }

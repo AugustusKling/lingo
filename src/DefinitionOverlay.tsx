@@ -1,4 +1,4 @@
-import { getVoices, speak, Translation, Course, transcribeIPA } from './util.js';
+import { useVoices, speak, Translation, Course, transcribeIPA } from './util.js';
 import styles from './DefinitionOverlay.module.scss';
 import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
@@ -17,13 +17,15 @@ interface DefinitionOverlayProps {
 export function DefinitionOverlay({exercise, course, onBackToExercise}: DefinitionOverlayProps) {
     const { t } = useTranslation();
     const sentenceIdSourceLanguage = course.sentences[course.from].some(s => s === exercise);
+    
+    const lang = sentenceIdSourceLanguage ? course.to : course.from;
+    const voices = useVoices(lang);
+    
     const translationIds = course.links.filter(link => link.includes(exercise.id)).flatMap(link => link).filter(id => id !== exercise.id);
     const translations = (sentenceIdSourceLanguage ? course.sentences[course.to] : course.sentences[course.from])
         .filter(translation => translationIds.includes(translation.id));
     
     const renderTranslations = () => {
-        const lang = sentenceIdSourceLanguage ? course.to : course.from;
-        const voices = getVoices(lang);
         const hasVoices = voices.length > 0;
 
         return [<h2 key={lang+'-header'}>Translations</h2>, ...translations.map(translation => {
@@ -44,7 +46,7 @@ export function DefinitionOverlay({exercise, course, onBackToExercise}: Definiti
     }
 
     const langExercise = sentenceIdSourceLanguage ? course.from : course.to;
-    const voicesExercise = getVoices(langExercise);
+    const voicesExercise = useVoices(langExercise);
     const ipaTranscription = langExercise===course.to && transcribeIPA(course, exercise.text, course.to);
     return <div className={styles.definitionOverlay} style={{display:'flex'}}>
         <button className={styles.buttonBack} onClick={() => onBackToExercise?.()}>{ t('DefinitionOverlay.backToExercise') }</button>

@@ -1,5 +1,5 @@
 import { useState, useMemo, MouseEvent } from 'react';
-import { pickRandom, findWrongAnswers, speak, Course, Translation, transcribeIPA, cssClasses } from './util.js';
+import { pickRandom, findWrongAnswers, useVoices, speak, Course, Translation, transcribeIPA, cssClasses } from './util.js';
 import styles from './AnswerPick.module.scss';
 import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
@@ -11,13 +11,13 @@ interface AnswerPickProps {
     onSelect: (answer: string) => void;
     onConfirm: (answer: string) => void;
     onShowDefinition: (exercise: Translation) => void;
-    voices: SpeechSynthesisVoice[];
     acousticPick: boolean;
     hint: string;
 }
 
-export function AnswerPick({course, currentExercise, currentAnswer, onSelect, onConfirm, onShowDefinition, voices, acousticPick, hint}: AnswerPickProps) {
+export function AnswerPick({course, currentExercise, currentAnswer, onSelect, onConfirm, onShowDefinition, acousticPick, hint}: AnswerPickProps) {
     const { t } = useTranslation();
+    const voices = useVoices(course.to);
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
