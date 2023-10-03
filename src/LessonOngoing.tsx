@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect, useContext } from 'react';
-import { pickRandom, Course, Translation, useVoices, speak, segmentToWords, RankableExercise } from './util.js';
+import { pickRandom, Course, Translation, useVoices, speak, segmentToWords, RankableExercise, transcribeIPA } from './util.js';
 import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
 import { DefinitionOverlay } from './DefinitionOverlay.js';
 import styles from './LessonOngoing.module.scss';
+import stylesText from './text.module.scss';
 import {diffStringsRaw, DIFF_EQUAL, DIFF_DELETE, DIFF_INSERT} from 'jest-diff';
 import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 import { useTranslation } from "react-i18next";
@@ -199,13 +200,23 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     
     const renderCorrectAnswerConfirmation = () => {
         const correctAnswer = acceptedAnswers.find(correctOption => doAnswersMatch(correctOption.text, currentAnswer, course.to));
+        const ipaTranscription = transcribeIPA(course, correctAnswer.text, course.to);
         const alsoCorrectAnswers = acceptedAnswers.filter(sentence => sentence.id !== correctAnswer.id);
         return <div className={styles.correctAnswerConfirmation}>
             <h2>{ t('LessonOngoing.answeredCorrectly') }</h2>
-            <p>{ correctAnswer.text }</p>
+            <p className={styles.sentenceWithIpa}>
+                <span>{ correctAnswer.text }</span>
+                { ipaTranscription && <span className={stylesText.ipa}>{ ipaTranscription }</span> }
+            </p>
             { alsoCorrectAnswers.length === 0 ? <></> : <>
                 <h2>{ t('LessonOngoing.alsoCorrect') }</h2>
-                { alsoCorrectAnswers.map(sentence => <p key={sentence.id}>{sentence.text}</p>) }
+                { alsoCorrectAnswers.map(sentence => {
+                    const ipaTranscription = transcribeIPA(course, sentence.text, course.to);
+                    return <p key={sentence.id} className={styles.sentenceWithIpa}>
+                        <span>{sentence.text}</span>
+                        { ipaTranscription && <span className={stylesText.ipa}>{ ipaTranscription }</span> }
+                    </p>;
+                }) }
             </> }
         </div>
     };
