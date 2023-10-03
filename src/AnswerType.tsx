@@ -1,9 +1,8 @@
 import { useMemo, useState, useCallback, useContext } from 'react';
-import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords, speakContinue, useVoices } from './util.js';
+import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords } from './util.js';
 import styles from './AnswerType.module.scss';
 import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
-import { AudioExercisesEnabledContext } from './contexts.js';
 
 interface AnswerTypeProps {
     course: Course;
@@ -16,12 +15,6 @@ interface AnswerTypeProps {
 
 export function AnswerType({course, currentExercise, currentAnswer, onChange, onConfirm, hint}: AnswerTypeProps) {
     const { t } = useTranslation();
-    const audioExercisesEnabled = useContext(AudioExercisesEnabledContext);
-    const voices = useVoices(course.to);
-    const voice = useMemo(
-        () => voices.length > 0 ? pickRandom(voices) : null,
-        [voices]
-    );
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
@@ -52,9 +45,6 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
     
     const addSuggestion = (e: MouseEvent, wordSuggestion: string) => {
         e.target.classList.add(styles.clicked);
-        if (audioExercisesEnabled && voice) {
-            speakContinue(wordSuggestion, voice);
-        }
         if (currentAnswer === '') {
             onChange(wordSuggestion);
         } else if (/^[.¿?,?!;"]$/.test(wordSuggestion)) {

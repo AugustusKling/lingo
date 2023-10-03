@@ -122,22 +122,23 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
                 answerCorrect
             });
             
+            const canSpeak = audioExercisesEnabled && voices.length>0;
             if (!answerCorrect) {
                 setCorrectAnswerHintVisible(true);
-                if (audioExercisesEnabled && voices.length>0) {
+                if (canSpeak) {
                     speak(currentExercise.text, voices);
                 }
-            } else if (correctAnswerConfirmationsEnabled) {
+            } else if (correctAnswerConfirmationsEnabled || canSpeak) {
                 setCorrectAnswerConfirmationVisible(true);
-                if (audioExercisesEnabled && voices.length>0) {
+                if (correctAnswerConfirmationsEnabled) {
                     speak(currentExercise.text, voices);
+                } else if (canSpeak) {
+                    speak(currentExercise.text, voices).then(playedToEnd => {
+                        if (playedToEnd) {
+                            showNextExcercise()
+                        }
+                    });
                 }
-            } else if (audioExercisesEnabled && voices.length>0) {
-                speak(currentExercise.text, voices).then(playedToEnd => {
-                    if (playedToEnd) {
-                        showNextExcercise()
-                    }
-                });
             } else {
                 showNextExcercise();
             }
