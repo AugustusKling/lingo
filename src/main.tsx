@@ -239,7 +239,7 @@ function App() {
         if (!answerCorrect) {
             knowledgeExercise.hiddenUntil = 0;
         } else {
-            const multiplier = knowledgeExercise.lastAnswersCorrect.reduce((accu, current) => current ? accu + 1 : accu - 1, 0);
+            const multiplier = knowledgeExercise.lastAnswersCorrect.reduce((accu, current) => current ? accu + 1 : accu, 0);
             if (knowledgeExercise.lastAnswersCorrect.length < 10) {
                 const tenMinutes = 10*60*1000;
                 knowledgeExercise.hiddenUntil = new Date().getTime() + multiplier * tenMinutes;
