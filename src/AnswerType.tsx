@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useContext } from 'react';
-import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords } from './util.js';
+import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords, RankableExercise } from './util.js';
 import styles from './AnswerType.module.scss';
 import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
@@ -11,9 +11,10 @@ interface AnswerTypeProps {
     onChange: (answer: string) => void;
     onConfirm: (answer: string) => void;
     hint: string;
+    rank: RankableExercise['rank'];
 }
 
-export function AnswerType({course, currentExercise, currentAnswer, onChange, onConfirm, hint}: AnswerTypeProps) {
+export function AnswerType({course, currentExercise, currentAnswer, onChange, onConfirm, hint, rank}: AnswerTypeProps) {
     const { t } = useTranslation();
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
@@ -42,6 +43,8 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
         textareaNode?.focus();
     }, []);
     const [dummyTextareaVisible, setDummyTextareaVisible] = useState(true);
+    
+    const [wordBankShown, setWorkBankShown] = useState(rank >= 10);
     
     const addSuggestion = (e: MouseEvent, wordSuggestion: string) => {
         e.target.classList.add(styles.clicked);
@@ -72,6 +75,7 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
             { dummyTextareaVisible ? <div className={styles.textarea} onClick={() => setDummyTextareaVisible(false)}>&#8203;{currentAnswer}</div>
             : <textarea ref={textareaRef} type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} onKeyPress={confirmOnEnter} />}<button onClick={() => removeLastWord() }>{ t('AnswerType.clear') }</button>
         </div>
+        { !wordBankShown ? <button className={styles.showWordBankButton} onClick={() => setWorkBankShown(true)}>{ t('AnswerType.showWordBank') }</button> :
         <div className={styles.wordSuggestions} onAnimationEnd={removeAnimation}>{
             wordSuggestions.map(suggestion => {
                 return <p className={styles.wordSuggestion} onClick={e => addSuggestion(e, suggestion)} key={suggestion}>
@@ -79,6 +83,6 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
                     { course.ipaTranscriptions && course.ipaTranscriptions[suggestion] && <span className={stylesText.ipa}>{course.ipaTranscriptions[suggestion]}</span> }
                 </p>;
             })
-        }</div>
+        }</div> }
     </div>;
 }

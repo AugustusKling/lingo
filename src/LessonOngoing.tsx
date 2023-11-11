@@ -162,6 +162,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     
     const renderAnswerMeans = () => {
         if (typeAnswerMode) {
+            console.log(ongoingLessonProgress.find(re => re.id === currentExercise.id));
             return <AnswerType course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onChange={setCurrentAnswer} onConfirm={confirm} hint={
                 speakAnswerAsQuestionMode ? t('LessonOngoing.typeHeard') : t('LessonOngoing.typeTranslation')
             } />;
