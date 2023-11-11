@@ -44,7 +44,7 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
     }, []);
     const [dummyTextareaVisible, setDummyTextareaVisible] = useState(true);
     
-    const [wordBankShown, setWorkBankShown] = useState(rank >= 10);
+    const [wordBankShown, setWorkBankShown] = useState(rank <= 10);
     
     const addSuggestion = (e: MouseEvent, wordSuggestion: string) => {
         e.target.classList.add(styles.clicked);

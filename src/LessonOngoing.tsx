@@ -162,10 +162,10 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     
     const renderAnswerMeans = () => {
         if (typeAnswerMode) {
-            console.log(ongoingLessonProgress.find(re => re.id === currentExercise.id));
+            const rank = ongoingLessonProgress.find(re => re.id === currentExercise.id).rank;
             return <AnswerType course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onChange={setCurrentAnswer} onConfirm={confirm} hint={
                 speakAnswerAsQuestionMode ? t('LessonOngoing.typeHeard') : t('LessonOngoing.typeTranslation')
-            } />;
+            } rank={rank} />;
         } else {
             return <AnswerPick course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onSelect={setCurrentAnswer} onConfirm={confirm} onShowDefinition={showDefinitionOverlay} acousticPick={acousticPick} hint={
                 speakAnswerAsQuestionMode ? t('LessonOngoing.pickHeard') : t('LessonOngoing.pickTranslation')
