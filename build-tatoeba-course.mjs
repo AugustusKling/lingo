@@ -134,7 +134,9 @@ async function getList(listId) {
 const espeakLanguages = {
     swe: 'sv',
     spa: 'es',
-    rus: 'ru'
+    rus: 'ru',
+    por: 'pt',
+    nld: 'nl'
 };
 const openIpaDictionaries = {};
 const toLanguageWordSegmenter = new Intl.Segmenter(toLanguage, { granularity: "word" });
