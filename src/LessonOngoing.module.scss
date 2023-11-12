@@ -31,6 +31,10 @@
     border: 1rem solid orange;
     margin: 1rem 0;
     
+    h2 {
+        margin: 1rem;
+    }
+    
     .diffWrong {
         color: red;
         text-decoration: wavy underline;
@@ -54,20 +58,19 @@
     border: 1rem solid #ceffce;
     margin: 1rem 0;
     padding: 0 1rem;
-    
+}
+
+.correctAnswerHint, .correctAnswerConfirmation {
     h2 {
         font-size: 1.2rem;
-    }
-    
-    p {
-        border-left: 0.5rem solid darkgray;
-        padding-left: 0.5rem;
     }
 }
 
 .sentenceWithIpa {
     display: flex;
     flex-direction: column;
+    border-left: 0.5rem solid darkgray;
+    padding-left: 0.5rem;
 }
 
 .buttons {

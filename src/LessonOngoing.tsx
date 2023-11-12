@@ -131,7 +131,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
                 }
             } else if (correctAnswerConfirmationsEnabled || canSpeak) {
                 setCorrectAnswerConfirmationVisible(true);
-                if (correctAnswerConfirmationsEnabled) {
+                if (correctAnswerConfirmationsEnabled && canSpeak) {
                     speak(currentExercise.text, voices);
                 } else if (canSpeak) {
                     speak(currentExercise.text, voices).then(playedToEnd => {
@@ -173,10 +173,25 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
         }
     }
     
+    const renderTranslations = () => {
+        const translationIds = course.links.filter(link => link.includes(currentExercise.id)).flatMap(link => link).filter(id => id !== currentExercise.id);
+        const translations = course.sentences[course.from].filter(translation => translationIds.includes(translation.id));
+        return <>
+            <h2>{ t('LessonOngoing.translations') }</h2>
+            { translations.map(sentence => {
+                const ipaTranscription = transcribeIPA(course, sentence.text, course.from);
+                return <p key={sentence.id} className={styles.sentenceWithIpa}>
+                    <span>{sentence.text}</span>
+                    { ipaTranscription && <span className={stylesText.ipa}>{ ipaTranscription }</span> }
+                </p>;
+            }) }
+        </>;
+    };
+    
     const renderWrongAndCorrectAnswer = () => {
         const diff = diffStringsRaw(currentAnswer, currentExercise.text, true);
         return <div className={styles.correctAnswerHint}>
-            <p>{ t('LessonOngoing.answeredWrongly') }</p>
+            <h2>{ t('LessonOngoing.answeredWrongly') }</h2>
             <p className={styles.wrongAnswer}>{diff.map((section, index) => {
                 const sectionState = section[0];
                 const sectionValue = section[1];
@@ -186,7 +201,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
                     return sectionValue;
                 }
             })}</p>
-            <p>{ t('LessonOngoing.correctAnswer') }</p>
+            <h2>{ t('LessonOngoing.correctAnswer') }</h2>
             <p className={styles.correctAnswer}>{diff.map((section, index) => {
                 const sectionState = section[0];
                 const sectionValue = section[1];
@@ -196,6 +211,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
                     return sectionValue;
                 }
             })}</p>
+            { renderTranslations() }
         </div>
     };
     
@@ -219,6 +235,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
                     </p>;
                 }) }
             </> }
+            { renderTranslations() }
         </div>
     };
     
