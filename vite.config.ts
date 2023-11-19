@@ -12,7 +12,7 @@ export default {
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: [
-          '**/*.{js,css,html,png,svg,txt}',
+          '**/*.{js,css,html,png,svg}',
           'dist-data/courses/index.json'
         ]
       },
@@ -20,7 +20,7 @@ export default {
         name: 'lingo',
         short_name: 'lingo',
         description: 'Vocabulary trainer based on Tatoeba data',
-        theme_color: '#ffffff',
+        theme_color: '#cccccc',
         // Fullscreen to work around Firefox showing white area in dark mode instead of dark status bar.
         display: "fullscreen",
         icons: [
