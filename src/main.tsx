@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import useLocalStorageState from 'use-local-storage-state'
 import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
-import { pickRandom, speak, getProgressForCourse, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises, rankableExerciseComparator, RankableExercise, StatusForExercise, ExerciseFilter } from './util.js';
+import { pickRandom, speak, getProgressForCourse, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises, rankableExerciseComparator, RankableExercise, StatusForExercise, ExerciseFilter, Translation } from './util.js';
 import { CourseList} from './CourseList.js';
 import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
 import i18n from "i18next";
@@ -17,7 +17,7 @@ interface OngoingLesson {
     exerciseFilter: ExerciseFilter;
     progress: RankableExercise[];
     batchId: number;
-    batchExercises: string[];
+    batchExercises: Translation[];
 }
 
 function App() {
@@ -159,8 +159,8 @@ function App() {
     const onBackToCourseList = () => {
         setHash('');
     };
-    const progressForExercises = (lang: string, exerciseNames: string[]) => {
-        return rankableExercises(knowledge[lang] ?? {}, exerciseNames);
+    const progressForExercises = (lang: string, translations: Translation[]) => {
+        return rankableExercises(knowledge[lang] ?? {}, translations);
     }
     const statusForExercise: StatusForExercise = (to: string, conceptName: string) => {
         const langKnowledge = knowledge[to] || {};
@@ -185,7 +185,7 @@ function App() {
             return;
         }
         const amountToShow = Math.min(10, exercisePicklist.length);
-        const rankable = rankableExercises(knowledge[lang] ?? {}, exercisePicklist);
+        const rankable = progressForExercises(lang, exercisePicklist);
         const comparator = rankableExerciseComparator();
         const rankedUnshuffled = rankable.sort(comparator);
         
@@ -203,22 +203,22 @@ function App() {
         }
         const ranked = rankedGroups.flatMap(group => group.sort(() => Math.random() - 0.5));
         
-        const picked: string[] = ranked.splice(0, Math.min(amountToShow*0.7, ranked.length)).map(r => r.id);
+        const picked: RankableExercise[] = ranked.splice(0, Math.min(amountToShow*0.7, ranked.length));
         while(picked.length < amountToShow) {
             const pickedIndex = ranked.findIndex(r => r.unseen);
             if (pickedIndex === -1) {
                 break;
             }
-            picked.push(...ranked.splice(pickedIndex, 1).map(r => r.id));
+            picked.push(...ranked.splice(pickedIndex, 1));
         }
-        const fillers = ranked.splice(0, Math.min(amountToShow - picked.length, ranked.length)).map(r => r.id);
+        const fillers = ranked.splice(0, Math.min(amountToShow - picked.length, ranked.length));
         picked.push(...fillers);
         picked.sort(() => Math.random() - 0.5);
         setOngoingLesson({
             exerciseFilter,
             progress: progressForExercises(lang, exercisePicklist),
             batchId: new Date().getTime(),
-            batchExercises: picked
+            batchExercises: picked.map(rankable => rankable.translation)
         });
         setHash('lesson');
     };

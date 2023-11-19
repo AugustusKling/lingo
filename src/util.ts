@@ -43,13 +43,14 @@ export interface CourseMeta {
 
 export interface RankableExercise {
     id: string;
+    translation: Translation;
     rank: number;
     hiddenUntil: number;
     unseen: boolean;
 }
 
 export type StatusForExercise = (to: string, conceptName: string) => ExerciseStatus;
-export type ExerciseFilter = (statusForExercise: StatusForExercise) => string[];
+export type ExerciseFilter = (statusForExercise: StatusForExercise) => Translation[];
 
 export function pickRandom<X>(array: Array<X>): X {
     return array[Math.floor(Math.random() * array.length)];
@@ -147,8 +148,7 @@ export function speakContinue(text: string, voice: SpeechSynthesisVoice): Promis
 }
 
 export function getProgressForCourse(knowledge: Knowledge, course: Course) {
-    const exerciseNames = course.sentences[course.to].map(translation => translation.id);
-    return rankableExercises(knowledge[course.to] ?? {}, exerciseNames);
+    return rankableExercises(knowledge[course.to] ?? {}, course.sentences[course.to]);
 }
 export function statusForExerciseReact(langKnowledge: LangKnowledge, exerciseName: string): ExerciseStatus {
     const knowledge: ExerciseKnowledge = langKnowledge[exerciseName];
@@ -164,12 +164,13 @@ export function statusForExerciseReact(langKnowledge: LangKnowledge, exerciseNam
     return "somewhat";
 }
 
-export function rankableExercises(langKnowledge: LangKnowledge, exercises: string[]): RankableExercise[] {
-    return exercises.map(id => {
-        const exerciseKnowledge = langKnowledge[id];
+export function rankableExercises(langKnowledge: LangKnowledge, exercises: Translation[]): RankableExercise[] {
+    return exercises.map(translation => {
+        const exerciseKnowledge = langKnowledge[translation.id];
         if (!exerciseKnowledge) {
             return {
-                id,
+                id: translation.id,
+                translation,
                 rank: 0,
                 hiddenUntil: 0,
                 unseen: true
@@ -177,7 +178,8 @@ export function rankableExercises(langKnowledge: LangKnowledge, exercises: strin
         }
         const rank = exerciseKnowledge.lastAnswersCorrect.reduce((accu, current) => current ? accu + 1 : accu - 1, 0);
         return {
-            id,
+            id: translation.id,
+            translation,
             rank,
             hiddenUntil: exerciseKnowledge.hiddenUntil,
             unseen: false
@@ -196,7 +198,12 @@ export const rankableExerciseComparator =() => {
             return -1;
         }
         
-        return a.rank - b.rank;
+        const rankDiff = a.rank - b.rank;
+        if (rankDiff!==0) {
+            return rankDiff;
+        }
+        
+        return a.translation.text.length - b.translation.text.length;
     };
 };
 

@@ -8,7 +8,7 @@ interface CourseDetailsProps {
     course: Course;
     progress: RankableExercise[];
     onBackToCourseList?: () => void;
-    getProgressForExercises: (lang: string, exercises: string[]) => RankableExercise[];
+    getProgressForExercises: (lang: string, exercises: Translation[]) => RankableExercise[];
     statusForExercise: StatusForExercise;
     showDynamicLesson: (lang: string, exerciseFilter: ExerciseFilter) => void;
 }
@@ -16,12 +16,14 @@ interface CourseDetailsProps {
 export function CourseDetails ({course, progress, onBackToCourseList, getProgressForExercises, statusForExercise, showDynamicLesson}: CourseDetailsProps) {
     const { t, i18n } = useTranslation();
     const languagesInUILanguage = new Intl.DisplayNames([i18n.resolvedLanguage], { type: 'language' });
+    const translationsById = new Map<string, Translation>(course.sentences[course.to].map(translation => [translation.id, translation]));
     
     const renderLessonTiles = () => {
         const sortedLessons = [...course.lessons].sort((a, b) => (a.order || 0) - (b.order || 0));
         return sortedLessons.map((lesson, index) => {
             const title = lesson.title[course.to] ?? lesson.title[course.from] ?? lesson.title.eng;
-            return <LessonTile course={course} lesson={lesson} title={title} exerciseCount={lesson.exercises.length} progress={getProgressForExercises(course.to, lesson.exercises)} onExercisesSelected={() => showDynamicLesson(course.to, statusForExercise => lesson.exercises)} key={index} />;
+            const translations = lesson.exercises.map(id => translationsById.get(id));
+            return <LessonTile course={course} lesson={lesson} title={title} exerciseCount={lesson.exercises.length} progress={getProgressForExercises(course.to, translations)} onExercisesSelected={() => showDynamicLesson(course.to, statusForExercise => translations)} key={index} />;
         });
     };
     const renderDynamic = () => {
@@ -44,15 +46,15 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
             [t('CourseDetails.dynamic.New')]: statusForExercise => course.sentences[course.to].filter(sentence => 'unseen' === statusForExercise(course.to, sentence.id))
         };
         return Object.entries(dynamic).map(([dynamicTitle, exerciseFilter]) => {
-            const exerciseNames = exerciseFilter(statusForExercise).map(sentence => sentence.id);
-            return <LessonTile course={course} title={dynamicTitle} exerciseCount={exerciseNames.length} progress={getProgressForExercises(course.to, exerciseNames)} onExercisesSelected={() => showDynamicLesson(course.to, statusForExercise => exerciseFilter(statusForExercise).map(sentence => sentence.id) )} key={dynamicTitle} />;
+            const translations = exerciseFilter(statusForExercise);
+            return <LessonTile course={course} title={dynamicTitle} exerciseCount={translations.length} progress={getProgressForExercises(course.to, translations)} onExercisesSelected={() => showDynamicLesson(course.to, statusForExercise => exerciseFilter(statusForExercise) )} key={dynamicTitle} />;
         });
     };
     return <div className={styles.course}>
         <h1 className="title">{languagesInUILanguage.of(course.to)}</h1>
         <Progress progress={progress} />
         <button className={styles.buttonBack} onClick={ () => onBackToCourseList?.() }>{ t('CourseDetails.backCourseList') }</button>
-        <button className={styles.buttonTrain} onClick={ () => showDynamicLesson(course.to, statusForExercise => course.sentences[course.to].map(sentence => sentence.id)) }>{ t('CourseDetails.train') }</button>
+        <button className={styles.buttonTrain} onClick={ () => showDynamicLesson(course.to, statusForExercise => course.sentences[course.to]) }>{ t('CourseDetails.train') }</button>
         <h2>{ t('CourseDetails.lessons') }</h2>
         <div className={styles.lessons}>{ renderLessonTiles() }</div>
         <h2>{ t('CourseDetails.dynamic') }</h2>

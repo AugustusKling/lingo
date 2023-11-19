@@ -52,8 +52,8 @@ export function DefinitionOverlay({exercise, course, onBackToExercise}: Definiti
         <button className={styles.buttonBack} onClick={() => onBackToExercise?.()}>{ t('DefinitionOverlay.backToExercise') }</button>
         <h1 className={styles.title}>{exercise.text}</h1>
         { ipaTranscription && <p className={stylesText.ipa}>{ ipaTranscription }</p> }
-        <Source translation={exercise} />
-        <Licence translation={exercise} />
+        { exercise.source && <Source translation={exercise} /> }
+        { exercise.licence && <Licence translation={exercise} /> }
         <div className={styles.buttonContainer}>
             <button onClick={() => open(exercise.source, '_blank')}>{ t('DefinitionOverlay.openTatoeba') }</button>
             { voicesExercise.length > 0 && <button onClick={() => speak(exercise.text, voicesExercise)}>{ t('DefinitionOverlay.speak') }</button> }

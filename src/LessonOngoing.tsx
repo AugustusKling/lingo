@@ -12,7 +12,7 @@ import { Progress } from './Progress.js';
 
 export interface LessonOngoingProps {
     course: Course;
-    exercises: string[];
+    exercises: Translation[];
     onLessonDone?: () => void;
     onAbort?: () => void;
     onExerciseConfirmed: (_: {course: Course, exercise: Translation, answerCorrect: boolean}) => void;
@@ -28,7 +28,7 @@ function doAnswersMatch(a: string, b: string, language: string): boolean {
 export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerciseConfirmed, ongoingLessonProgress}: LessonOngoingProps) {
     const { t } = useTranslation();
     const [remainingExercises, setRemainingExercises] = useState(exercises);
-    const currentExercise = course.sentences[course.to].find(sentence => sentence.id === remainingExercises[0]);
+    const currentExercise = remainingExercises[0];
     const questionHint = '';
     const voices = useVoices(course.to);
     const audioExercisesEnabled = useContext(AudioExercisesEnabledContext);
@@ -102,7 +102,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
             onLessonDone?.();
         } else {
             setCurrentAnswer('');
-            setRemainingExercises(remainingExercises.filter(e => e!==currentExercise.id));
+            setRemainingExercises(remainingExercises.filter(e => e!==currentExercise));
         }
     };
     const confirm = (answerText: string) => {
