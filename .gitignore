@@ -7,3 +7,4 @@ cache/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+public/dist-data/courses/
