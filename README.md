@@ -3,7 +3,13 @@ Vocabulary Trainer
 
 Displays or reads example sentences and their translations. Exercises request picking correct translations or building them from a bunch of given words. Voice exercises are based on your device's text-to-speech feature.
 
-Runnable version at https://augustuskling.github.io/lingo/ which stores progress in the browser's `localStorage` only. No account required.
+Runnable version at https://augustuskling.github.io/lingo/ which caches courses to work offline. Progress is stored in the browser's `localStorage` only. No account required.
+
+<img src="https://github.com/AugustusKling/lingo/assets/599177/e4432013-921b-4500-978b-8445f9a0ac23" width=200>
+<img src="https://github.com/AugustusKling/lingo/assets/599177/20426cf5-c753-40b5-af79-723547d69258" width=200>
+<img src="https://github.com/AugustusKling/lingo/assets/599177/0d01e168-ae7a-49c6-b360-7b7af25dad9d" width=200>
+<img src="https://github.com/AugustusKling/lingo/assets/599177/e50046e8-f3fe-48ad-8682-ca888866a606" width=200>
+
 
 ## Data source
 Example sentences are imported from [Tatoeba](https://tatoeba.org/). Excercises can be grouped into thematic lessions by putting yml files in the `lessons` folder.
