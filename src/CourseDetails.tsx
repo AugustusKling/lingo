@@ -3,6 +3,7 @@ import { LessonTile } from './LessonTile.js';
 import styles from './CourseDetails.module.scss';
 import { Course, ExerciseStatus, ExerciseFilter, StatusForExercise, RankableExercise, Translation } from './util.js';
 import { useTranslation } from "react-i18next";
+import { useMemo, useState } from 'react';
 
 interface CourseDetailsProps {
     course: Course;
@@ -17,6 +18,27 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
     const { t, i18n } = useTranslation();
     const languagesInUILanguage = new Intl.DisplayNames([i18n.resolvedLanguage], { type: 'language' });
     const translationsById = new Map<string, Translation>(course.sentences[course.to].map(translation => [translation.id, translation]));
+    
+    const contributors = useMemo(() => {
+        const contributors = {};
+        for (const lang of [course.from, course.to]) {
+            for (const translation of course.sentences[lang]) {
+                if (!translation.author) {
+                    continue;
+                }
+                
+                const sentenceCount = contributors[translation.author] ?? 0;
+                contributors[translation.author] = sentenceCount + 1;
+            }
+        }
+        return Object.entries(contributors).sort((a, b) => b[1] - a[1]);
+    }, [course]);
+    const [topContributorLimit, setTopContributorLimit] = useState(10);
+    const topContributors = useMemo(
+        () => contributors.slice(0, topContributorLimit),
+        [ contributors, topContributorLimit ]
+    );
+    const contributorsRemaining = contributors.length - topContributorLimit;
     
     const renderLessonTiles = () => {
         const sortedLessons = [...course.lessons].sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -55,9 +77,24 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
         <Progress progress={progress} />
         <button className={styles.buttonBack} onClick={ () => onBackToCourseList?.() }>{ t('CourseDetails.backCourseList') }</button>
         <button className={styles.buttonTrain} onClick={ () => showDynamicLesson(course.to, statusForExercise => course.sentences[course.to]) }>{ t('CourseDetails.train') }</button>
+        
         <h2>{ t('CourseDetails.lessons') }</h2>
         <div className={styles.lessons}>{ renderLessonTiles() }</div>
+        
         <h2>{ t('CourseDetails.dynamic') }</h2>
         <div className={styles.dynamicCategories}>{ renderDynamic() }</div>
+        
+        <h2>{ t('CourseDetails.contributors') }</h2>
+        <p>{ t('CourseDetails.contributors.praise') }</p>
+        <table className={styles.contributorTable}>
+            <thead><tr><th>{ t('CourseDetails.contributors.columnAuthor') }</th><th>{ t('CourseDetails.contributors.columnSentenceCount') }</th></tr></thead>
+            <tbody>{ topContributors.map(([author, sentenceCount]) => {
+                return <tr key={author}><td><a href={`https://tatoeba.org/en/user/profile/${encodeURI(author)}`}>{ author }</a></td><td>{ t('CourseDetails.contributors.sentenceCount', { sentenceCount }) }</td></tr>;
+            }) }</tbody>
+        </table>
+        { contributorsRemaining > 0 && <>
+            <p>{ t('CourseDetails.contributors.andOthers', { others: contributorsRemaining }) }</p>
+            <button onClick={ () => setTopContributorLimit(topContributorLimit + 10) }>{ t('CourseDetails.contributors.showMore') }</button>
+        </> }
     </div>;
 }

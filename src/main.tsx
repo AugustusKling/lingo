@@ -282,8 +282,8 @@ i18n
   .use(LanguageDetector)
   .use(ICU)
   .init({
-    supportedLngs: ['en', 'de'],
-    fallbackLng: "en",
+    supportedLngs: [ 'de'],
+    fallbackLng: "de",
     returnEmptyString: false,
     resources: { en: {translation: en}, de: {translation: de} },
     detection: {

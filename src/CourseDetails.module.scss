@@ -14,3 +14,20 @@
     gap: 1rem;
     cursor: pointer;
 }
+
+.contributorTable {
+    width: 100%;
+    border-spacing: 0;
+    
+    a {
+        text-decoration: none;
+        color: steelblue;
+    }
+    
+    th:first-child {
+        text-align: left;
+    }
+    td:last-child, th:last-child {
+        text-align: right;
+    }
+}
