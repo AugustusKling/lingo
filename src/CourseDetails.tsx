@@ -1,7 +1,7 @@
 import { Progress } from './Progress.js';
 import { LessonTile } from './LessonTile.js';
 import styles from './CourseDetails.module.scss';
-import { Course, ExerciseStatus, ExerciseFilter, StatusForExercise, RankableExercise, Translation } from './util.js';
+import { Course, ExerciseStatus, ExerciseFilter, StatusForExercise, RankableExercise, Translation, segmentToWords } from './util.js';
 import { useTranslation } from "react-i18next";
 import { useMemo, useState } from 'react';
 
@@ -40,6 +40,36 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
     );
     const contributorsRemaining = contributors.length - topContributorLimit;
     
+    const commonWords = useMemo(() => {
+        const learedWords = new Set();
+        for (const rankable of progress) {
+            if(rankable.rank > 5) {
+                for (const segment of segmentToWords(rankable.translation.text, course.to)) {
+                    if (segment.isWordLike) {
+                        learedWords.add(segment.segment.toLowerCase());
+                    }
+                }
+            }
+        }
+        
+        const words = {};
+        for (const translation of course.sentences[course.to]) {
+            const sentenceSegments = segmentToWords(translation.text, course.to);
+            for (const segment of sentenceSegments) {
+                if (!segment.isWordLike) {
+                    continue;
+                }
+                
+                const word = segment.segment.toLowerCase();
+                if (!learedWords.has(word)) {
+                    const wordCount = words[word] ?? 0;
+                    words[word] = wordCount + 1;
+                }
+            }
+        }
+        return Object.entries(words).sort((a, b) => b[1] - a[1]).slice(0, 10).map(wordAndCount => wordAndCount[0]);
+    }, [course, progress]);
+    
     const renderLessonTiles = () => {
         const sortedLessons = [...course.lessons].sort((a, b) => (a.order || 0) - (b.order || 0));
         return sortedLessons.map((lesson, index) => {
@@ -65,6 +95,10 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
             [t('CourseDetails.dynamic.Training')]: statusForExercise => course.sentences[course.to].filter(sentence => ['wrong', 'somewhat'].includes(statusForExercise(course.to, sentence.id))),
             [t('CourseDetails.dynamic.Short')]: statusForExercise => byLength.slice(0, 100).map(wrapper => wrapper.sentence),
             [t('CourseDetails.dynamic.fewWords')]: statusForExercise => byWordCount.slice(0, 100).map(wrapper => wrapper.sentence),
+            [t('CourseDetails.dynamic.moreCommonWords')]: statusForExercise => course.sentences[course.to].filter(sentence => {
+                const sentenceWords = segmentToWords(sentence.text, course.to).filter(segment => segment.isWordLike).map(segment => segment.segment.toLowerCase());
+                return commonWords.some(word => sentenceWords.includes(word));
+            }),
             [t('CourseDetails.dynamic.New')]: statusForExercise => course.sentences[course.to].filter(sentence => 'unseen' === statusForExercise(course.to, sentence.id))
         };
         return Object.entries(dynamic).map(([dynamicTitle, exerciseFilter]) => {
