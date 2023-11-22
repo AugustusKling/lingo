@@ -79,31 +79,37 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
         });
     };
     const renderDynamic = () => {
-        const byLength = course.sentences[course.to].map(sentence => {
-            return {
-                sentence,
-                length: sentence.text.length
-            };
-        }).sort((a, b) => a.length - b.length);
-        const byWordCount = course.sentences[course.to].map(sentence => {
-            return {
-                sentence,
-                length: sentence.text.split(' ').length
-            };
-        }).sort((a, b) => a.length - b.length);
-        const dynamic: Record<string, (s: StatusForExercise) => Translation[]> = {
-            [t('CourseDetails.dynamic.Training')]: statusForExercise => course.sentences[course.to].filter(sentence => ['wrong', 'somewhat'].includes(statusForExercise(course.to, sentence.id))),
-            [t('CourseDetails.dynamic.Short')]: statusForExercise => byLength.slice(0, 100).map(wrapper => wrapper.sentence),
-            [t('CourseDetails.dynamic.fewWords')]: statusForExercise => byWordCount.slice(0, 100).map(wrapper => wrapper.sentence),
-            [t('CourseDetails.dynamic.moreCommonWords')]: statusForExercise => course.sentences[course.to].filter(sentence => {
-                const sentenceWords = segmentToWords(sentence.text, course.to).filter(segment => segment.isWordLike).map(segment => segment.segment.toLowerCase());
-                return commonWords.some(word => sentenceWords.includes(word));
-            }),
-            [t('CourseDetails.dynamic.New')]: statusForExercise => course.sentences[course.to].filter(sentence => 'unseen' === statusForExercise(course.to, sentence.id))
-        };
-        return Object.entries(dynamic).map(([dynamicTitle, exerciseFilter]) => {
-            const translations = exerciseFilter(statusForExercise);
-            return <LessonTile course={course} title={dynamicTitle} exerciseCount={translations.length} progress={getProgressForExercises(course.to, translations)} onExercisesSelected={() => showDynamicLesson(course.to, statusForExercise => exerciseFilter(statusForExercise) )} key={dynamicTitle} />;
+        const dynamic: { title: string; description: string; exerciseFilter: (s: StatusForExercise) => Translation[]}[] = [
+            {
+                title: t('CourseDetails.dynamic.lessons'),
+                description: t('CourseDetails.dynamic.lessons.description'),
+                exerciseFilter: statusForExercise => {
+                    const lessonSentences = new Set(course.lessons.flatMap(lesson => lesson.exercises));
+                    return course.sentences[course.to].filter(sentence => lessonSentences.has(sentence.id));
+                },
+            },
+            {
+                title: t('CourseDetails.dynamic.repeat'),
+                description: t('CourseDetails.dynamic.repeat.description'),
+                exerciseFilter: statusForExercise => course.sentences[course.to].filter(sentence => ['wrong', 'somewhat'].includes(statusForExercise(course.to, sentence.id)))
+            },
+            {
+                title: t('CourseDetails.dynamic.moreCommonWords'),
+                description: t('CourseDetails.dynamic.moreCommonWords.description'),
+                exerciseFilter: statusForExercise => course.sentences[course.to].filter(sentence => {
+                    const sentenceWords = segmentToWords(sentence.text, course.to).filter(segment => segment.isWordLike).map(segment => segment.segment.toLowerCase());
+                    return commonWords.some(word => sentenceWords.includes(word));
+                })
+            },
+            {
+                title: t('CourseDetails.dynamic.new'),
+                description: t('CourseDetails.dynamic.new.description'),
+                exerciseFilter: statusForExercise => course.sentences[course.to].filter(sentence => 'unseen' === statusForExercise(course.to, sentence.id))
+            }
+        ];
+        return dynamic.map(dynamicCategory => {
+            const translations = dynamicCategory.exerciseFilter(statusForExercise);
+            return <LessonTile course={course} title={dynamicCategory.title} description={dynamicCategory.description} exerciseCount={translations.length} progress={getProgressForExercises(course.to, translations)} onExercisesSelected={() => showDynamicLesson(course.to, statusForExercise => exerciseFilter(statusForExercise) )} key={dynamicCategory.title} />;
         });
     };
     return <div className={styles.course}>
