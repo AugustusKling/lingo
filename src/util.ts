@@ -75,8 +75,8 @@ function findWrongAnswer(exercise: Translation, course: Course, answerLanguage: 
     const others = course.sentences[answerLanguage].filter(o => !correctAnswers.some(cLink => cLink.includes(o.id)) && !except.includes(o));
     if(Math.random() > 0.5 && answerLanguage === course.to) {
         const lessons = course.lessons.filter(lesson => lesson.exercises.some(eId => correctAnswers.some(cLink => cLink.includes(eId))));
-        const lessonsSentenceIds = lessons.flatMap(lesson => lesson.exercises);
-        const othersInLessons = others.filter(o => lessonsSentenceIds.includes(o.id));
+        const lessonsSentenceIds = new Set(lessons.flatMap(lesson => lesson.exercises));
+        const othersInLessons = others.filter(o => lessonsSentenceIds.has(o.id));
         if (othersInLessons.length > 0) {
             return pickRandom(othersInLessons);
         }
