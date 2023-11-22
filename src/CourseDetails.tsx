@@ -109,7 +109,7 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
         ];
         return dynamic.map(dynamicCategory => {
             const translations = dynamicCategory.exerciseFilter(statusForExercise);
-            return <LessonTile course={course} title={dynamicCategory.title} description={dynamicCategory.description} exerciseCount={translations.length} progress={getProgressForExercises(course.to, translations)} onExercisesSelected={() => showDynamicLesson(course.to, statusForExercise => exerciseFilter(statusForExercise) )} key={dynamicCategory.title} />;
+            return <LessonTile course={course} title={dynamicCategory.title} description={dynamicCategory.description} exerciseCount={translations.length} progress={getProgressForExercises(course.to, translations)} onExercisesSelected={() => showDynamicLesson(course.to, statusForExercise => dynamicCategory.exerciseFilter(statusForExercise) )} key={dynamicCategory.title} />;
         });
     };
     return <div className={styles.course}>
