@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import i18next from 'i18next';
 
 interface ExerciseKnowledge {
     lastAnswersCorrect: boolean[];
@@ -274,4 +275,24 @@ export function cssClasses(...maybeClassNames: (string | false | Record<string, 
         }
         return prev==='' ? toAdd : `${prev} ${toAdd}`;
     }, '');
+}
+
+export function getTranslationUILanguage(translations: Record<string, string>): string | undefined {
+    const desiredLocale = i18next.resolvedLanguage;
+    if (translations[desiredLocale]) {
+        return translations[desiredLocale];
+    }
+    
+    const languageSeparatorIndex = desiredLocale.indexOf('-');
+    if (languageSeparatorIndex > 0) {
+        const desiredLanguage = desiredLocale.substring(0, languageSeparatorIndex);
+        if (translations[desiredLanguage]) {
+            return translations[desiredLanguage];
+        }
+    }
+    
+    const fallback = { en: 'eng', de: 'deu'}[desiredLocale];
+    if (translations[fallback]) {
+        return translations[fallback];
+    }
 }

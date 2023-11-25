@@ -1,6 +1,6 @@
 import {Progress} from './Progress.js';
 import styles from './LessonTile.module.scss';
-import {Course, Lesson, RankableExercise} from './util.js';
+import {Course, Lesson, RankableExercise, getTranslationUILanguage} from './util.js';
 import { useTranslation } from "react-i18next";
 
 interface LessonTileProps {
@@ -15,7 +15,7 @@ interface LessonTileProps {
 
 export function LessonTile({course, lesson, title, description, exerciseCount, onExercisesSelected, progress}: LessonTileProps) {
     const { t } = useTranslation();
-    const resultingDescription = description ?? lesson?.description?.[course.to] ?? lesson?.description?.[course.from];
+    const resultingDescription = description ?? (lesson?.description && getTranslationUILanguage(lesson.description));
     return <div className={styles.lesson} onClick={ () => onExercisesSelected?.() }>
         <h1 className={styles.title}>{ title }</h1>
         <Progress progress={progress} />

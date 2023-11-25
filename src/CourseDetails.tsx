@@ -1,7 +1,7 @@
 import { Progress } from './Progress.js';
 import { LessonTile } from './LessonTile.js';
 import styles from './CourseDetails.module.scss';
-import { Course, ExerciseStatus, ExerciseFilter, StatusForExercise, RankableExercise, Translation, segmentToWords } from './util.js';
+import { Course, ExerciseStatus, ExerciseFilter, StatusForExercise, RankableExercise, Translation, segmentToWords, getTranslationUILanguage } from './util.js';
 import { useTranslation } from "react-i18next";
 import { useMemo, useState } from 'react';
 
@@ -73,7 +73,7 @@ export function CourseDetails ({course, progress, onBackToCourseList, getProgres
     const renderLessonTiles = () => {
         const sortedLessons = [...course.lessons].sort((a, b) => (a.order || 0) - (b.order || 0));
         return sortedLessons.map((lesson, index) => {
-            const title = lesson.title[course.to] ?? lesson.title[course.from] ?? lesson.title.eng;
+            const title = getTranslationUILanguage(lesson.title) ?? '?';
             const translations = lesson.exercises.map(id => translationsById.get(id));
             return <LessonTile course={course} lesson={lesson} title={title} exerciseCount={lesson.exercises.length} progress={getProgressForExercises(course.to, translations)} onExercisesSelected={() => showDynamicLesson(course.to, statusForExercise => translations)} key={index} />;
         });
