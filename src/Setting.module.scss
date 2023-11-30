@@ -1,0 +1,13 @@
+.grid {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.title {
+    font-weight: bold;
+}
+
+.explanation {
+    margin: 0;
+    grid-column: 2;
+}

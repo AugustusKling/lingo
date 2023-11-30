@@ -6,7 +6,7 @@ import { DefinitionOverlay } from './DefinitionOverlay.js';
 import styles from './LessonOngoing.module.scss';
 import stylesText from './text.module.scss';
 import {diffStringsRaw, DIFF_EQUAL, DIFF_DELETE, DIFF_INSERT} from 'jest-diff';
-import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
+import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext, IpaEnabledContext } from './contexts.js';
 import { useTranslation } from "react-i18next";
 import { Progress } from './Progress.js';
 
@@ -27,6 +27,8 @@ function doAnswersMatch(a: string, b: string, language: string): boolean {
 
 export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerciseConfirmed, ongoingLessonProgress}: LessonOngoingProps) {
     const { t } = useTranslation();
+    const ipaEnabled = useContext(IpaEnabledContext);
+    
     const [remainingExercises, setRemainingExercises] = useState(exercises);
     const currentExercise = remainingExercises[0];
     const questionHint = '';
@@ -179,7 +181,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
         return <>
             <h2>{ t('LessonOngoing.translations') }</h2>
             { translations.map(sentence => {
-                const ipaTranscription = transcribeIPA(course, sentence.text, course.from);
+                const ipaTranscription = ipaEnabled && transcribeIPA(course, sentence.text, course.from);
                 return <p key={sentence.id} className={styles.sentenceWithIpa}>
                     <span>{sentence.text}</span>
                     { ipaTranscription && <span className={stylesText.ipa}>{ ipaTranscription }</span> }
@@ -190,6 +192,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     
     const renderWrongAndCorrectAnswer = () => {
         const diff = diffStringsRaw(currentAnswer, currentExercise.text, true);
+        const ipaTranscription = ipaEnabled && transcribeIPA(course, currentExercise.text, course.to);
         return <div className={styles.correctAnswerHint}>
             <h2>{ t('LessonOngoing.answeredWrongly') }</h2>
             <p className={styles.wrongAnswer}>{diff.map((section, index) => {
@@ -202,22 +205,25 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
                 }
             })}</p>
             <h2>{ t('LessonOngoing.correctAnswer') }</h2>
-            <p className={styles.correctAnswer}>{diff.map((section, index) => {
-                const sectionState = section[0];
-                const sectionValue = section[1];
-                if (sectionState===DIFF_INSERT) {
-                    return <span className={styles.diffCorrected} key={index}>{sectionValue}</span>
-                } else if (sectionState!==DIFF_DELETE) {
-                    return sectionValue;
-                }
-            })}</p>
+            <p className={styles.correctAnswer}>
+                <div>{diff.map((section, index) => {
+                    const sectionState = section[0];
+                    const sectionValue = section[1];
+                    if (sectionState===DIFF_INSERT) {
+                        return <span className={styles.diffCorrected} key={index}>{sectionValue}</span>
+                    } else if (sectionState!==DIFF_DELETE) {
+                        return sectionValue;
+                    }
+                })}</div>
+                { ipaTranscription && <span className={stylesText.ipa}>{ ipaTranscription }</span> }
+            </p>
             { renderTranslations() }
         </div>
     };
     
     const renderCorrectAnswerConfirmation = () => {
         const correctAnswer = acceptedAnswers.find(correctOption => doAnswersMatch(correctOption.text, currentAnswer, course.to));
-        const ipaTranscription = transcribeIPA(course, correctAnswer.text, course.to);
+        const ipaTranscription = ipaEnabled && transcribeIPA(course, correctAnswer.text, course.to);
         const alsoCorrectAnswers = acceptedAnswers.filter(sentence => sentence.id !== correctAnswer.id);
         return <div className={styles.correctAnswerConfirmation}>
             <h2>{ t('LessonOngoing.answeredCorrectly') }</h2>
@@ -228,7 +234,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
             { alsoCorrectAnswers.length === 0 ? <></> : <>
                 <h2>{ t('LessonOngoing.alsoCorrect') }</h2>
                 { alsoCorrectAnswers.map(sentence => {
-                    const ipaTranscription = transcribeIPA(course, sentence.text, course.to);
+                    const ipaTranscription = ipaEnabled && transcribeIPA(course, sentence.text, course.to);
                     return <p key={sentence.id} className={styles.sentenceWithIpa}>
                         <span>{sentence.text}</span>
                         { ipaTranscription && <span className={stylesText.ipa}>{ ipaTranscription }</span> }

@@ -5,7 +5,7 @@ import { CourseDetails } from './CourseDetails.js';
 import { LessonOngoing, LessonOngoingProps } from './LessonOngoing.js';
 import { pickRandom, speak, getProgressForCourse, statusForExerciseReact, CourseMeta, Course, Knowledge, rankableExercises, rankableExerciseComparator, RankableExercise, StatusForExercise, ExerciseFilter, Translation } from './util.js';
 import { CourseList} from './CourseList.js';
-import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext } from './contexts.js';
+import { AudioExercisesEnabledContext, CorrectAnswerConfirmationsEnabledContext, IpaEnabledContext } from './contexts.js';
 import i18n from "i18next";
 import { useTranslation, initReactI18next } from "react-i18next";
 import LanguageDetector from 'i18next-browser-languagedetector';
@@ -85,6 +85,9 @@ function App() {
     });
     const [correctAnswerConfirmationsEnabled, setCorrectAnswerConfirmationsEnabled] = useLocalStorageState('correctAnswerConfirmationsEnabled', {
         defaultValue: false
+    });
+    const [ipaEnabled, setIpaEnabled] = useLocalStorageState('ipaEnabled', {
+        defaultValue: true
     });
     
     useEffect(() => {
@@ -265,13 +268,17 @@ function App() {
     } else if((hash==='lesson' || hash==='definition') && activeCourseData && ongoingLesson) {
         return <AudioExercisesEnabledContext.Provider value={audioExercisesEnabled}>
             <CorrectAnswerConfirmationsEnabledContext.Provider value={correctAnswerConfirmationsEnabled}>
-                <LessonOngoing key={ongoingLesson.batchId} course={activeCourseData} exercises={ongoingLesson.batchExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={onLessonDone} onAbort={onAbort} ongoingLessonProgress={ongoingLesson.progress} />
+                <IpaEnabledContext.Provider value={ipaEnabled}>
+                    <LessonOngoing key={ongoingLesson.batchId} course={activeCourseData} exercises={ongoingLesson.batchExercises} onExerciseConfirmed={onExerciseConfirmed} onLessonDone={onLessonDone} onAbort={onAbort} ongoingLessonProgress={ongoingLesson.progress} />
+                </IpaEnabledContext.Provider>
             </CorrectAnswerConfirmationsEnabledContext.Provider>
         </AudioExercisesEnabledContext.Provider>;
     } else {
         return <AudioExercisesEnabledContext.Provider value={audioExercisesEnabled}>
             <CorrectAnswerConfirmationsEnabledContext.Provider value={correctAnswerConfirmationsEnabled}>
-                <CourseList courseIndex={ courseIndex } knowledge={knowledge} onCourseSelected={onCourseSelected} setAudioExercisesEnabled={setAudioExercisesEnabled} setCorrectAnswerConfirmationsEnabled={setCorrectAnswerConfirmationsEnabled} />
+                <IpaEnabledContext.Provider value={ipaEnabled}>
+                    <CourseList courseIndex={ courseIndex } knowledge={knowledge} onCourseSelected={onCourseSelected} setAudioExercisesEnabled={setAudioExercisesEnabled} setCorrectAnswerConfirmationsEnabled={setCorrectAnswerConfirmationsEnabled} setIpaEnabled={setIpaEnabled} />
+                </IpaEnabledContext.Provider>
             </CorrectAnswerConfirmationsEnabledContext.Provider>
         </AudioExercisesEnabledContext.Provider>;
     }

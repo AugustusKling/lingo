@@ -1,8 +1,9 @@
-import { useState, useMemo, MouseEvent } from 'react';
+import { useState, useMemo, MouseEvent, useContext } from 'react';
 import { pickRandom, findWrongAnswers, useVoices, speak, Course, Translation, transcribeIPA, cssClasses } from './util.js';
 import styles from './AnswerPick.module.scss';
 import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
+import { IpaEnabledContext } from './contexts.js';
 
 interface AnswerPickProps {
     course: Course;
@@ -17,6 +18,8 @@ interface AnswerPickProps {
 
 export function AnswerPick({course, currentExercise, currentAnswer, onSelect, onConfirm, onShowDefinition, acousticPick, hint}: AnswerPickProps) {
     const { t } = useTranslation();
+    const ipaEnabled = useContext(IpaEnabledContext);
+    
     const voices = useVoices(course.to);
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
@@ -48,7 +51,7 @@ export function AnswerPick({course, currentExercise, currentAnswer, onSelect, on
         return answerOptions.map((answerOption, index) => {
             const infoButton = <button className={styles.buttonDefinition} onClick={e => showDefinition(answerOption, e)}>{ t('AnswerPick.info') }</button>;
             const answerClasses = cssClasses(styles.answer, currentAnswer===answerOption.text && styles.selected);
-            const ipaTranscription = transcribeIPA(course, answerOption.text, course.to);
+            const ipaTranscription = ipaEnabled && transcribeIPA(course, answerOption.text, course.to);
             if (acousticPick) {
                 return <div className={answerClasses} onClick={() => onSelect(answerOption.text)} key={index}>
                     <button onClick={() => speakAndSelect(answerOption) }>{ t('AnswerPick.speak') }</button>

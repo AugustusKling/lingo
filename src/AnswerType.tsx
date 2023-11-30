@@ -3,6 +3,7 @@ import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords, Rank
 import styles from './AnswerType.module.scss';
 import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
+import { IpaEnabledContext } from './contexts.js';
 
 interface AnswerTypeProps {
     course: Course;
@@ -16,6 +17,8 @@ interface AnswerTypeProps {
 
 export function AnswerType({course, currentExercise, currentAnswer, onChange, onConfirm, hint, rank}: AnswerTypeProps) {
     const { t } = useTranslation();
+    const ipaEnabled = useContext(IpaEnabledContext);
+    
     const wrongAnswers = useMemo(
         () => findWrongAnswers(currentExercise, 2, course, course.to),
         [course, currentExercise]
@@ -80,7 +83,7 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
             wordSuggestions.map(suggestion => {
                 return <p className={styles.wordSuggestion} onClick={e => addSuggestion(e, suggestion)} key={suggestion}>
                     <span>{suggestion}</span>
-                    { course.ipaTranscriptions && course.ipaTranscriptions[suggestion] && <span className={stylesText.ipa}>{course.ipaTranscriptions[suggestion]}</span> }
+                    { ipaEnabled && course.ipaTranscriptions && course.ipaTranscriptions[suggestion] && <span className={stylesText.ipa}>{course.ipaTranscriptions[suggestion]}</span> }
                 </p>;
             })
         }</div> }

@@ -2,6 +2,8 @@ import { useVoices, speak, Translation, Course, transcribeIPA } from './util.js'
 import styles from './DefinitionOverlay.module.scss';
 import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
+import { IpaEnabledContext } from './contexts.js';
+import { useContext } from 'react';
 
 const licenseNames: Partial<Record<string, string>> = {
     'https://creativecommons.org/licenses/by-sa/3.0/': 'CC BY-SA 3.0',
@@ -16,6 +18,8 @@ interface DefinitionOverlayProps {
 
 export function DefinitionOverlay({exercise, course, onBackToExercise}: DefinitionOverlayProps) {
     const { t } = useTranslation();
+    const ipaEnabled = useContext(IpaEnabledContext);
+    
     const sentenceIdSourceLanguage = course.sentences[course.from].some(s => s === exercise);
     
     const lang = sentenceIdSourceLanguage ? course.to : course.from;
@@ -29,7 +33,7 @@ export function DefinitionOverlay({exercise, course, onBackToExercise}: Definiti
         const hasVoices = voices.length > 0;
 
         return [<h2 key={lang+'-header'}>Translations</h2>, ...translations.map(translation => {
-            const ipaTranscription = lang===course.to && transcribeIPA(course, translation.text, course.to);
+            const ipaTranscription = ipaEnabled && lang===course.to && transcribeIPA(course, translation.text, course.to);
             return <div key={translation.id}>
                 <div className={styles.translation}>
                     <h3>{translation.text}</h3>
@@ -47,7 +51,7 @@ export function DefinitionOverlay({exercise, course, onBackToExercise}: Definiti
 
     const langExercise = sentenceIdSourceLanguage ? course.from : course.to;
     const voicesExercise = useVoices(langExercise);
-    const ipaTranscription = langExercise===course.to && transcribeIPA(course, exercise.text, course.to);
+    const ipaTranscription = ipaEnabled && langExercise===course.to && transcribeIPA(course, exercise.text, course.to);
     return <div className={styles.definitionOverlay} style={{display:'flex'}}>
         <button className={styles.buttonBack} onClick={() => onBackToExercise?.()}>{ t('DefinitionOverlay.backToExercise') }</button>
         <h1 className={styles.title}>{exercise.text}</h1>
