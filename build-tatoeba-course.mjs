@@ -8,6 +8,12 @@ import { execSync, spawnSync } from 'node:child_process';
 
 const [nodeExecutable, scriptName, fromLanguage, toLanguage] = process.argv;
 
+const uiLanguages = ['eng', 'deu'];
+
+function removeLastConsoleLine() {
+    process.stdout.write('\u001B[1A\u001B[2K');
+}
+
 /**
  * Fetches and extracts Tatoeba data.
  * @return Local path to extracted file.
@@ -136,7 +142,12 @@ const espeakLanguages = {
     spa: 'es',
     rus: 'ru',
     por: 'pt',
-    nld: 'nl'
+    nld: 'nl',
+    eng: 'en-gb',
+    deu: 'de',
+    epo: 'eo',
+    jpn: 'ja',
+    ita: 'it'
 };
 const openIpaDictionaries = {};
 const toLanguageWordSegmenter = new Intl.Segmenter(toLanguage, { granularity: "word" });
@@ -180,7 +191,9 @@ function toIPA(ipaDict, language, text) {
             if (result.error) {
                 console.warn(`Failed IPA transcription for ${word}`, result.error);
             } else {
-                ipaDict[word] = result.stdout.replaceAll(/\s/g, '');
+                ipaDict[word] = result.stdout.replaceAll(/\s/g, '')
+                    // Remove espeak's markers for foreign language content.
+                    .replaceAll(/\(.+?\)/g, '');
                 openIpaDictionaries[language][word] = ipaDict[word];
             }
         }
@@ -209,7 +222,7 @@ const lessonNames = fs.readdirSync('lessons');
 for(const lessonName of lessonNames) {
     try {
         const doc = yaml.load(fs.readFileSync(`lessons/${lessonName}`, 'utf8'));
-        if (!doc.title[fromLanguage] && !doc.title[toLanguage]) {
+        if (!uiLanguages.some(uiLang => doc.title[uiLang])) {
             console.log(`Failed to read ${lessonName}. It has no title.`);
         }
         if(!doc.exercises) {
@@ -292,7 +305,14 @@ const course = {
 const addedSentences = new Set();
 
 console.log(`Merging sentences into course.`);
+let linksProcessIndex = 0;
 for(const {fromId, toId} of links) {
+    if (linksProcessIndex > 0) {
+        removeLastConsoleLine();
+    }
+    linksProcessIndex++;
+    console.log(' Link %d/%d (%d%%)', linksProcessIndex, links.length, (linksProcessIndex*100/links.length).toFixed(2));
+    
     const fromTranslationDetail = fromTranslationsByRef.get(fromId);
     const toTranslationDetail = toTranslationsByRef.get(toId);
     if (!fromTranslationDetail || !toTranslationDetail) {
