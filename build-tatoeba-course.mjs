@@ -146,7 +146,6 @@ const espeakLanguages = {
     eng: 'en-gb',
     deu: 'de',
     epo: 'eo',
-    jpn: 'ja',
     ita: 'it'
 };
 const openIpaDictionaries = {};
