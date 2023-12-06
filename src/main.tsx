@@ -187,34 +187,41 @@ function App() {
             setHash('course');
             return;
         }
+        const picked: RankableExercise[] = [];
         const amountToShow = Math.min(10, exercisePicklist.length);
         const rankable = progressForExercises(lang, exercisePicklist);
         const comparator = rankableExerciseComparator();
         const rankedUnshuffled = rankable.sort(comparator);
         
-        // Shuffle exercises of equal sort order,
-        const rankedGroups: RankableExercise[][] = [rankedUnshuffled.splice(0, 1)];
-        for(const exercise of rankedUnshuffled) {
-            const lastGroup = rankedGroups[rankedGroups.length - 1];
-            const lastExercise = lastGroup[lastGroup.length - 1];
-            const sameRankGroup = comparator(lastExercise, exercise) === 0;
-            if (sameRankGroup) {
-                lastGroup.push(exercise);
-            } else {
-                rankedGroups.push([exercise]);
+        // Shuffle exercises of equal rank and similar length.
+        const now = new Date().getTime();
+        const seen = rankedUnshuffled.filter(r => !r.unseen && r.hiddenUntil < now);
+        if (seen.length > 0) {
+            const rankedGroups: RankableExercise[][] = [seen.splice(0, 1)];
+            for(const exercise of seen) {
+                const lastGroup = rankedGroups[rankedGroups.length - 1];
+                const lastExercise = lastGroup[lastGroup.length - 1];
+                const sameRankGroup = lastExercise.rank === exercise.rank && Math.floor(lastExercise.translation.text.length/10)===Math.floor(exercise.translation.text.length/10);
+                if (sameRankGroup) {
+                    lastGroup.push(exercise);
+                } else {
+                    rankedGroups.push([exercise]);
+                }
             }
+            const ranked = rankedGroups.flatMap(group => group.sort(() => Math.random() - 0.5));
+            picked.push(...ranked.splice(0, Math.min(amountToShow*0.7, ranked.length)));
         }
-        const ranked = rankedGroups.flatMap(group => group.sort(() => Math.random() - 0.5));
         
-        const picked: RankableExercise[] = ranked.splice(0, Math.min(amountToShow*0.7, ranked.length));
         while(picked.length < amountToShow) {
-            const pickedIndex = ranked.findIndex(r => r.unseen);
+            const pickedIndex = rankedUnshuffled.findIndex(r => r.unseen);
             if (pickedIndex === -1) {
                 break;
             }
-            picked.push(...ranked.splice(pickedIndex, 1));
+            picked.push(...rankedUnshuffled.splice(pickedIndex, 1));
         }
-        const fillers = ranked.splice(0, Math.min(amountToShow - picked.length, ranked.length));
+        
+        const notYetPicked = rankedUnshuffled.filter(r => !picked.includes(r));
+        const fillers = notYetPicked.splice(0, Math.min(amountToShow - picked.length, notYetPicked.length));
         picked.push(...fillers);
         picked.sort(() => Math.random() - 0.5);
         setOngoingLesson({
