@@ -380,6 +380,12 @@ courseIndex[`${fromLanguage} to ${toLanguage}`] = {
 };
 fs.writeFileSync(courseIndexFile, JSON.stringify(courseIndex));
 
+console.log('');
+console.log('From\tTo\tExercises\tBuild Time');
+for(const languageStats of Object.values(courseIndex).sort((a, b) => `${a.from} ${a.to}`.localeCompare(`${b.from} ${b.to}`))) {
+    console.log(`${languageStats.from}\t${languageStats.to}\t${languageStats.exercises}\t\t${languageStats.buildTime}`); 
+}
+
 for(const language in openIpaDictionaries) {
     const dictPath = `./cache/ipa/${language}.json`;
     fs.writeFileSync(dictPath, JSON.stringify(openIpaDictionaries[language]));
