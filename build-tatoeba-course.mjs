@@ -98,26 +98,68 @@ function toCourseSentence(translationDetail) {
     };
 }
 
-async function downloadList(listId, pageNumber) {
-    if (pageNumber>10) {
-        throw new Error(`Download of list ${listId} has unexpectedly many pages.`);
+let tatoebaCsrfToken;
+async function getTatoebaCsrfToken() {
+    if (tatoebaCsrfToken) {
+        return tatoebaCsrfToken;
     }
-    console.log(`Downloading list ${listId}, page number ${pageNumber}`);
-    const sentenceIds = [];
-    const response = await fetch(`https://tatoeba.org/en/api_v0/search?list=${listId}&sort=created&sort_reverse=yes&to=none&page=${pageNumber}`, {
-        "headers": {
-            "Accept": "application/json"
-        },
-        "method": "GET"
+    
+    const tatoebaHtmlRequest = await fetch('https://tatoeba.org/en/contact');
+    const cookies = tatoebaHtmlRequest.headers.getSetCookie();
+    for (const cookie of cookies) {
+        if (cookie.startsWith('csrfToken=')) {
+            return cookie.replace(/^csrfToken=/, '').split(';')[0];
+        }
+    }
+    
+    throw new Error(`Failed to get Tatoeba CSRF token,`);
+}
+async function downloadList(listId) {
+    console.log(`Downloading list ${listId}`);
+    const csrfToken = await getTatoebaCsrfToken();
+    
+    const exportRequest = new FormData();
+    exportRequest.append('fields[]', 'id');
+    exportRequest.append('format', 'txt');
+    exportRequest.append('list_id', listId);
+    exportRequest.append('type', 'list');
+    const exportJobResponse = await fetch(`https://tatoeba.org/en/exports/add`, {
+        method: 'POST',
+        body: exportRequest,
+        headers: {
+            'Cookie': `csrfToken=${csrfToken};`,
+            'X-CSRF-Token': csrfToken
+        }
     });
-    const page = await response.json();
-    for(const sentence of page.results) {
-        sentenceIds.push(String(sentence.id));
+    if (!exportJobResponse.ok) {
+        try {
+            console.error(await exportJobResponse.text());
+        } finally {
+            throw new Error(`Creation of export job for list ${listId} failed.`);
+        }
     }
-    if (page.paging.Sentences.nextPage) {
-        sentenceIds.push(... await downloadList(listId, pageNumber + 1));
+    const exportJob = (await exportJobResponse.json()).export;
+    console.log(` Scheduled download job ${exportJob.id}: ${exportJob.name}`);
+    
+    // Give server enough time to prepare export and keep load low..
+    await new Promise(resolve => setTimeout(() => resolve('awaited'), 10_000));
+    
+    const exportResultResponse = await fetch(`https://tatoeba.org/en/exports/download/${encodeURI(exportJob.id)}/${encodeURI(exportJob.name)}.txt`, {
+        method: 'GET',
+        headers: {
+            'Cookie': `csrfToken=${csrfToken};`,
+            'X-CSRF-Token': csrfToken
+        }
+    });
+     if (!exportResultResponse.ok) {
+        try {
+            console.error(await exportResultResponse.text());
+        } finally {
+            throw new Error(`Download of export job for list ${listId} failed.`);
+        }
     }
-    return sentenceIds;
+    const exportResult = await exportResultResponse.text();
+    return exportResult.split(/\r?\n/).map(id => id.trim());
 }
 async function getList(listId) {
     const cacheFilePath = `./cache/tatoeba-lists/${listId}.json`;
@@ -131,7 +173,7 @@ async function getList(listId) {
     if (cacheLastModified.getTime() + maxValidityMilliseconds > Date.now()) {
         return JSON.parse(fs.readFileSync(cacheFilePath, 'utf8'));
     } else {
-        const sentenceIds = await downloadList(listId, 1);
+        const sentenceIds = await downloadList(listId);
         fs.writeFileSync(cacheFilePath, JSON.stringify(sentenceIds));
         return sentenceIds;
     }
