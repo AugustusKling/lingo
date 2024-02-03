@@ -5,6 +5,20 @@
     background: white;
 }
 
+.marks {
+    --mark-height: 0.5rem;
+    display: flex;
+    
+    .mark {
+        width: 0;
+        height: 0;
+        border-left: var(--mark-height) solid transparent;
+        border-right: var(--mark-height) solid transparent;
+        border-bottom: var(--mark-height) solid darkgray;
+        margin: auto;
+    }
+}
+
 @media (prefers-color-scheme: dark) {
     .progress {
         background: black;

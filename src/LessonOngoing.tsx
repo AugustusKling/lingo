@@ -31,6 +31,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     
     const [remainingExercises, setRemainingExercises] = useState(exercises);
     const currentExercise = remainingExercises[0];
+    const currentExerciseRankable = ongoingLessonProgress.find(re => re.id === currentExercise.id);
     const questionHint = '';
     const voices = useVoices(course.to);
     const audioExercisesEnabled = useContext(AudioExercisesEnabledContext);
@@ -164,7 +165,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     
     const renderAnswerMeans = () => {
         if (typeAnswerMode) {
-            const rank = ongoingLessonProgress.find(re => re.id === currentExercise.id).rank;
+            const rank = currentExerciseRankable.rank;
             return <AnswerType course={course} currentExercise={currentExercise} currentAnswer={currentAnswer} onChange={setCurrentAnswer} onConfirm={confirm} hint={
                 speakAnswerAsQuestionMode ? t('LessonOngoing.typeHeard') : t('LessonOngoing.typeTranslation')
             } rank={rank} />;
@@ -270,7 +271,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
         }
     };
     return <><div className={styles.fullHeight}>
-        <Progress progress={ongoingLessonProgress} />
+        <Progress progress={ongoingLessonProgress} mark={currentExerciseRankable} />
         <div className={styles.head}>{speakAnswerAsQuestionMode ? renderReadQuestion() : renderShowQuestion() }</div>
         { renderMain() }
         <div className={styles.buttons}>

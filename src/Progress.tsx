@@ -22,9 +22,10 @@ const colorBank = makeColorBank();
 
 interface Props {
     progress: RankableExercise[];
+    mark?: RankableExercise;
 }
 
-export function Progress({ progress }: Props) {
+export function Progress({ progress, mark }: Props) {
     const buckets = colorBank.map(() => 0);
     for(const exercise of progress) {
         const bucketIndex = Math.max(0, exercise.rank);
@@ -32,10 +33,20 @@ export function Progress({ progress }: Props) {
     }
     const maxAmount = buckets.reduce((a, b) => Math.max(a, b));
     
-    return <div className={ styles.progress }>{
-        buckets.map((amount, bucketIndex) => {
-            const opacity = maxAmount === 0 ? 0 : Math.log(1+amount)/Math.log(1+maxAmount);
-            return <div key={bucketIndex} style={ {flex: 1, backgroundColor: colorBank[bucketIndex], opacity } }></div>;
-        })
-    }</div>;
+    return <div>
+        <div className={ styles.progress }>{
+            buckets.map((amount, bucketIndex) => {
+                const opacity = maxAmount === 0 ? 0 : Math.log(1+amount)/Math.log(1+maxAmount);
+                return <div key={bucketIndex} style={ {flex: 1, backgroundColor: colorBank[bucketIndex], opacity } }></div>;
+            })
+        }</div>
+        { mark && <div className={ styles.marks }>{
+            buckets.map((amount, bucketIndex) => {
+                const markThis = Math.max(0, mark.rank) === bucketIndex;
+                return <div key={bucketIndex} style={ {flex: 1 } }>{
+                    markThis && <div className={styles.mark}></div>
+                }</div>;
+            })
+        }</div>}
+    </div>;
 }
