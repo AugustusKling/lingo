@@ -26,7 +26,7 @@
   "CourseList.setting.audio.title": "Audio exercises",
   "CourseList.setting.audio.explanation": "Enables listening exercises and reads out answers to exercises. Requires text-to-speech support of your device.",
   "CourseList.setting.correctAnswerConfirmations.title": "Confirmation of answers",
-  "CourseList.setting.correctAnswerConfirmations.explanation": "Awaits confirmation of all answers. If disabled, confirmations of correct answers are skipped.",
+  "CourseList.setting.correctAnswerConfirmations.explanation": "Awaits confirmation of all answers. If disabled, correct answer confirmations are shown briefly.",
   "CourseList.settting.ipa.title": "IPA transcription",
   "CourseList.settting.ipa.explanation": "Displays pronunciation of translations in notation of International Phonetic Alphabet. This is only available for some languages.",
   "CourseList.sourceLanguage": "Source Language",
@@ -50,5 +50,6 @@
   "LessonOngoing.abort": "Abort",
   "LessonOngoing.skip": "Skip",
   "LessonOngoing.confirm": "Confirm",
+  "LessonOngoing.confirmCounter": "Confirm ({secondsRemaining})",
   "LessonTile.exerciseCount": "{exerciseCount, plural, =0 {No exercises} =1 {1 exercise} other {# exercises}}"
 }

@@ -26,7 +26,7 @@
   "CourseList.setting.audio.title": "Audioübungen",
   "CourseList.setting.audio.explanation": "Aktiviert Hörübungen und liest Antworten vor. Benötigt Sprachsynthese deines Geräts.",
   "CourseList.setting.correctAnswerConfirmations.title": "Bestätigung von Antworten",
-  "CourseList.setting.correctAnswerConfirmations.explanation": "Bestätigungen von Antworten immer anzeigen. Falls deaktiviert, werden Bestätigungen korrekter Antworten übersprungen.",
+  "CourseList.setting.correctAnswerConfirmations.explanation": "Bestätigungen von Antworten immer abwarten. Falls deaktiviert, werden Bestätigungen korrekter Antworten kurzeitig gezeigt.",
   "CourseList.settting.ipa.title": "IPA Transkription",
   "CourseList.settting.ipa.explanation": "Zeigt Aussprache von Übersetzungen in Lautschrift an. Nur für manche Sprachen verfügbar.",
   "CourseList.sourceLanguage": "Ausgangssprache",
@@ -50,5 +50,6 @@
   "LessonOngoing.abort": "Abbrechen",
   "LessonOngoing.skip": "Überspringen",
   "LessonOngoing.confirm": "Bestätigen",
+  "LessonOngoing.confirmCounter": "Bestätigen ({secondsRemaining})",
   "LessonTile.exerciseCount": "{exerciseCount, plural, =0 {Keine Übungen} =1 {1 Übung} other {# Übungen}}"
 }

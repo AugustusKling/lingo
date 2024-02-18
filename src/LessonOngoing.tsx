@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useContext } from 'react';
+import { useState, useMemo, useEffect, useContext, useRef } from 'react';
 import { pickRandom, Course, Translation, useVoices, speak, segmentToWords, RankableExercise, transcribeIPA } from './util.js';
 import { AnswerPick } from './AnswerPick.js';
 import { AnswerType } from './AnswerType.js';
@@ -24,6 +24,8 @@ function doAnswersMatch(a: string, b: string, language: string): boolean {
     const bNormalized = segmentToWords(b, language).filter(s => s.isWordLike).map(s => s.segment).join(' ').toLowerCase();
     return aNormalized === bNormalized;
 }
+
+const autoConfirmDelaySecondsInitial = 2;
 
 export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerciseConfirmed, ongoingLessonProgress}: LessonOngoingProps) {
     const { t } = useTranslation();
@@ -58,7 +60,17 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     const [correctAnswerHintVisible, setCorrectAnswerHintVisible] = useState(false);
     const correctAnswerConfirmationsEnabled = useContext(CorrectAnswerConfirmationsEnabledContext);
     const [correctAnswerConfirmationVisible, setCorrectAnswerConfirmationVisible] = useState(false);
-    const [answerConfirmed, setAnswerConfirmed] = useState(false);
+    const [autoConfirmDelaySeconds, setAutoConfirmDelaySeconds] = useState(autoConfirmDelaySecondsInitial);
+    const autoConfirmIntervalJob = useRef<null | number>(null);
+    const [autoConfirmIntervalJobActive, setAutoConfirmIntervalJobActive] = useState(false);
+    const clearAutoConfirmIntervalJob = () => {
+        if (autoConfirmIntervalJob.current!==null) {
+            clearInterval(autoConfirmIntervalJob.current);
+            autoConfirmIntervalJob.current = null;
+            setAutoConfirmIntervalJobActive(false);
+        }
+    };
+    useEffect(() => clearAutoConfirmIntervalJob, []);
     
     type DefinitionOverlayData = {visible: false; exercise: null; course: null;} | {visible: true; exercise: Translation; course: Course;};
     const [definitionOverlayData, setDefinitionOverlayData] = useState<DefinitionOverlayData>({
@@ -99,13 +111,27 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
     const showNextExcercise = () => {
         setCorrectAnswerHintVisible(false);
         setCorrectAnswerConfirmationVisible(false);
-        setAnswerConfirmed(false);
+        setAutoConfirmDelaySeconds(autoConfirmDelaySecondsInitial);
+        clearAutoConfirmIntervalJob();
         speechSynthesis.cancel();
         if(remainingExercises.length === 1) {
             onLessonDone?.();
         } else {
             setCurrentAnswer('');
             setRemainingExercises(remainingExercises.filter(e => e!==currentExercise));
+        }
+    };
+    let autoConfirmIntervalStepCalls = 0;
+    /**
+     * Job executed on interval of 1s.
+     */
+    const autoConfirmIntervalStep = () => {
+        const secondsRemaining = autoConfirmDelaySecondsInitial - autoConfirmIntervalStepCalls;
+        if (secondsRemaining <= 0) {
+            showNextExcercise();
+        } else {
+            autoConfirmIntervalStepCalls = autoConfirmIntervalStepCalls + 1;
+            setAutoConfirmDelaySeconds(secondsRemaining);
         }
     };
     const confirm = (answerText: string) => {
@@ -117,9 +143,8 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
         setCurrentAnswer(answerText);
         if (correctAnswerHintVisible || correctAnswerConfirmationVisible) {
             showNextExcercise();
-        } else if(!answerConfirmed) {
+        } else {
             const answerCorrect = acceptedAnswers.some(correctOption => doAnswersMatch(correctOption.text, answerText, course.to));
-            setAnswerConfirmed(true);
             onExerciseConfirmed({
                 course,
                 exercise: currentExercise,
@@ -132,22 +157,22 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
                 if (canSpeak) {
                     speak(currentExercise.text, voices);
                 }
-            } else if (correctAnswerConfirmationsEnabled || canSpeak) {
+            } else {
                 setCorrectAnswerConfirmationVisible(true);
                 if (correctAnswerConfirmationsEnabled && canSpeak) {
                     speak(currentExercise.text, voices);
                 } else if (canSpeak) {
                     speak(currentExercise.text, voices).then(playedToEnd => {
                         if (playedToEnd) {
-                            showNextExcercise()
+                            autoConfirmIntervalJob.current = setInterval(autoConfirmIntervalStep, 1000);
+                            setAutoConfirmIntervalJobActive(true);
                         }
                     });
+                } else if(!correctAnswerConfirmationsEnabled) {
+                    autoConfirmIntervalJob.current = setInterval(autoConfirmIntervalStep, 1000);
+                    setAutoConfirmIntervalJobActive(true);
                 }
-            } else {
-                showNextExcercise();
             }
-        } else {
-            showNextExcercise();
         }
     };
     
@@ -226,7 +251,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
         const correctAnswer = acceptedAnswers.find(correctOption => doAnswersMatch(correctOption.text, currentAnswer, course.to));
         const ipaTranscription = ipaEnabled && transcribeIPA(course, correctAnswer.text, course.to);
         const alsoCorrectAnswers = acceptedAnswers.filter(sentence => sentence.id !== correctAnswer.id);
-        return <div className={styles.correctAnswerConfirmation}>
+        return <div className={styles.correctAnswerConfirmation} onClick={() => clearAutoConfirmIntervalJob()}>
             <h2>{ t('LessonOngoing.answeredCorrectly') }</h2>
             <p className={styles.sentenceWithIpa}>
                 <span>{ correctAnswer.text }</span>
@@ -277,7 +302,7 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
         <div className={styles.buttons}>
             <button onClick={() => onAbort?.() }>{ t('LessonOngoing.abort') }</button>
             <button onClick={() => showNextExcercise()}>{ t('LessonOngoing.skip') }</button>
-            <button onClick={() => confirm(currentAnswer)}>{ t('LessonOngoing.confirm') }</button>
+            <button onClick={() => confirm(currentAnswer)}>{ !autoConfirmIntervalJobActive ? t('LessonOngoing.confirm') : t('LessonOngoing.confirmCounter', {secondsRemaining: autoConfirmDelaySeconds}) }</button>
         </div>
     </div>
     {definitionOverlayData.visible && <DefinitionOverlay exercise={definitionOverlayData.exercise} course={course} onBackToExercise={() => closeDefinitionOverlay()} />}</>;
