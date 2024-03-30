@@ -20,9 +20,8 @@ export default {
         name: 'lingo',
         short_name: 'lingo',
         description: 'Vocabulary trainer based on Tatoeba data',
-        theme_color: '#cccccc',
-        // Fullscreen to work around Firefox showing white area in dark mode instead of dark status bar.
-        display: "fullscreen",
+        theme_color: '#000000',
+        display: "standalone",
         icons: [
           {
             src: 'pwa/logo.svg',
