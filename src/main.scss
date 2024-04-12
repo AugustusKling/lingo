@@ -3,6 +3,8 @@ body, textarea {
 }
 body {
     margin: 0;
+    /** Workaround Chrome reloading page on scrolling. */
+    overscroll-behavior-y: contain;
     
     > * {
         max-width: 400px;
