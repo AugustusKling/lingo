@@ -72,10 +72,22 @@ function group<X, Key extends string>(array: X[], mapper: (x: X) => Key): Partia
 }
 
 function findWrongAnswer(exercise: Translation, course: Course, answerLanguage: string, except: Translation[]): Translation {
-    const correctAnswers = course.links.filter(link => link.includes(exercise.id));
-    const others = course.sentences[answerLanguage].filter(o => !correctAnswers.some(cLink => cLink.includes(o.id)) && !except.includes(o));
+    const correctAnswerIds = new Set();
+    for(const link of course.links) {
+        if (link[0] === exercise.id) {
+            correctAnswerIds.add(link[1]);
+        }
+        if (link[1] === exercise.id) {
+            correctAnswerIds.add(link[0]);
+        }
+    }
+    const neitherCorrectNorExcluded = new Set(correctAnswerIds);
+    for(const e of except) {
+        neitherCorrectNorExcluded.add(e.id);
+    }
+    const others = course.sentences[answerLanguage].filter(o => !neitherCorrectNorExcluded.has(o.id));
     if(Math.random() > 0.5 && answerLanguage === course.to) {
-        const lessons = course.lessons.filter(lesson => lesson.exercises.some(eId => correctAnswers.some(cLink => cLink.includes(eId))));
+        const lessons = course.lessons.filter(lesson => lesson.exercises.some(eId => correctAnswerIds.has(eId)));
         const lessonsSentenceIds = new Set(lessons.flatMap(lesson => lesson.exercises));
         const othersInLessons = others.filter(o => lessonsSentenceIds.has(o.id));
         if (othersInLessons.length > 0) {
@@ -208,11 +220,16 @@ export const rankableExerciseComparator =() => {
     };
 };
 
+const wordSegmenters = {};
 export function segmentToWords(text: string, language: string): { segment: string; isWordLike: boolean; }[] {
     try {
         if (Intl.Segmenter) {
             // Hope browser handles language somewhat correctly.
-            const segmenter = new Intl.Segmenter(language, { granularity: "word" });
+            const cachedSegmenter = wordSegmenters[language];
+            const segmenter = cachedSegmenter ?? new Intl.Segmenter(language, { granularity: "word" });
+            if (cachedSegmenter === undefined) {
+                wordSegmenters[language] = segmenter;
+            }
             return Array.from(segmenter.segment(text));
         }
     } finally {}
