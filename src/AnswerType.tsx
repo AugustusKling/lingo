@@ -1,5 +1,5 @@
-import { useMemo, useState, useCallback, useContext } from 'react';
-import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords, RankableExercise } from './util.js';
+import { useMemo, useState, useCallback, useContext, useEffect } from 'react';
+import { pickRandom, findWrongAnswers, Course, Translation, segmentToWords, RankableExercise, cssClasses } from './util.js';
 import styles from './AnswerType.module.scss';
 import stylesText from './text.module.scss';
 import { useTranslation } from "react-i18next";
@@ -37,17 +37,21 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
     
     const wordSuggestions = useMemo(
         () => Array.from(new Set([
-            ...answerOptions.flatMap(answerOption => segmentToWords(answerOption.text, course.to).filter(s => s.isWordLike || !/^\s+$/g.test(s.segment) ).map(s => s.segment))
+            ...answerOptions.flatMap(answerOption => wordSuggestionFromSentenceSegments(segmentToWords(answerOption.text, course.to)))
         ])).sort(() => Math.random() - 0.5),
         [answerOptions]
     );
+    const currentAnswerSegments = wordSuggestionFromSentenceSegments(segmentToWords(currentAnswer, course.to));
     
     const textareaRef = useCallback(textareaNode => {
         textareaNode?.focus();
     }, []);
     const [dummyTextareaVisible, setDummyTextareaVisible] = useState(true);
     
-    const [wordBankShown, setWorkBankShown] = useState(rank <= 5);
+    const [wordBankShown, setWordBankShown] = useState(rank <= 5);
+    useEffect(() => {
+        setWordBankShown(rank <= 5);
+    }, [currentExercise]);
     
     const addSuggestion = (e: MouseEvent, wordSuggestion: string) => {
         e.target.classList.add(styles.clicked);
@@ -78,14 +82,22 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
             { dummyTextareaVisible ? <div className={styles.textarea} onClick={() => setDummyTextareaVisible(false)}>&#8203;{currentAnswer}</div>
             : <textarea ref={textareaRef} type="text" value={currentAnswer} onChange={e => onChange(e.target.value)} onKeyPress={confirmOnEnter} />}<button onClick={() => removeLastWord() }>{ t('AnswerType.clear') }</button>
         </div>
-        { !wordBankShown ? <button className={styles.showWordBankButton} onClick={() => setWorkBankShown(true)}>{ t('AnswerType.showWordBank') }</button> :
+        { !wordBankShown ? <button className={styles.showWordBankButton} onClick={() => setWordBankShown(true)}>{ t('AnswerType.showWordBank') }</button> :
         <div className={styles.wordSuggestions} onAnimationEnd={removeAnimation}>{
             wordSuggestions.map(suggestion => {
-                return <p className={styles.wordSuggestion} onClick={e => addSuggestion(e, suggestion)} key={suggestion}>
+                return <p className={cssClasses({
+                    [styles.wordSuggestion]: true,
+                    [styles.wordSuggestionUsed]: currentAnswerSegments.includes(suggestion),
+                    [styles.clicked]: currentAnswerSegments.includes(suggestion)
+                })} onClick={e => addSuggestion(e, suggestion)} key={suggestion}>
                     <span>{suggestion}</span>
                     { ipaEnabled && course.ipaTranscriptions && course.ipaTranscriptions[suggestion] && <span className={stylesText.ipa}>{course.ipaTranscriptions[suggestion]}</span> }
                 </p>;
             })
         }</div> }
     </div>;
+}
+
+function wordSuggestionFromSentenceSegments(segments) {
+    return segments.filter(s => s.isWordLike || !/^\s+$/g.test(s.segment) ).map(s => s.segment);
 }

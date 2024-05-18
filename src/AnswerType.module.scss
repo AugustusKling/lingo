@@ -49,6 +49,10 @@
     }
 }
 
+.wordSuggestionUsed {
+    opacity: 0.6;
+}
+
 @keyframes highlightSuggestion {
     10% {
         background: darkgray;
