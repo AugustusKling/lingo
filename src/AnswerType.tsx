@@ -48,9 +48,9 @@ export function AnswerType({course, currentExercise, currentAnswer, onChange, on
     }, []);
     const [dummyTextareaVisible, setDummyTextareaVisible] = useState(true);
     
-    const [wordBankShown, setWordBankShown] = useState(rank <= 5);
+    const [wordBankShown, setWordBankShown] = useState(rank <= 4);
     useEffect(() => {
-        setWordBankShown(rank <= 5);
+        setWordBankShown(rank <= 4);
     }, [currentExercise]);
     
     const addSuggestion = (e: MouseEvent, wordSuggestion: string) => {
