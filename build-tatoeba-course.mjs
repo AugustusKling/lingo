@@ -188,7 +188,8 @@ const espeakLanguages = {
     eng: 'en-gb',
     deu: 'de',
     epo: 'eo',
-    ita: 'it'
+    ita: 'it',
+    fra: 'fr-fr'
 };
 const openIpaDictionaries = {};
 const toLanguageWordSegmenter = new Intl.Segmenter(toLanguage, { granularity: "word" });
