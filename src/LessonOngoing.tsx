@@ -144,10 +144,11 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
         if (correctAnswerHintVisible || correctAnswerConfirmationVisible) {
             showNextExcercise();
         } else {
-            const answerCorrect = acceptedAnswers.some(correctOption => doAnswersMatch(correctOption.text, answerText, course.to));
+            const correctAnswer = acceptedAnswers.find(correctOption => doAnswersMatch(correctOption.text, answerText, course.to));
+            const answerCorrect = correctAnswer!==undefined;
             onExerciseConfirmed({
                 course,
-                exercise: currentExercise,
+                exercise: answerCorrect ? correctAnswer : currentExercise,
                 answerCorrect
             });
             
@@ -160,9 +161,9 @@ export function LessonOngoing({course, exercises, onLessonDone, onAbort, onExerc
             } else {
                 setCorrectAnswerConfirmationVisible(true);
                 if (correctAnswerConfirmationsEnabled && canSpeak) {
-                    speak(currentExercise.text, voices);
+                    speak(correctAnswer.text, voices);
                 } else if (canSpeak) {
-                    speak(currentExercise.text, voices).then(playedToEnd => {
+                    speak(correctAnswer.text, voices).then(playedToEnd => {
                         if (playedToEnd) {
                             autoConfirmIntervalJob.current = setInterval(autoConfirmIntervalStep, 1000);
                             setAutoConfirmIntervalJobActive(true);
